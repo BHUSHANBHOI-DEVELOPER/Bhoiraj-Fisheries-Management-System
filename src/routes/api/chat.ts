@@ -1,10 +1,6 @@
-import { createServerFileRoute } from "@tanstack/react-start/server";
+import { createFileRoute } from "@tanstack/react-router";
 import { convertToModelMessages, streamText, type UIMessage } from "ai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
-
-// Fallback shim — TanStack Start also supports createFileRoute with server handlers.
-// Using createFileRoute for consistency:
-import { createFileRoute } from "@tanstack/react-router";
 
 const SYSTEM_PROMPT = `You are the AI assistant for Bhoraj Fisheries Cooperative Society (भोराज मत्स्य सहकारी संस्था), a registered cooperative in Pimpalgaon Bk., Taluka Pachora, District Jalgaon, Maharashtra, India.
 
