@@ -19,7 +19,7 @@ function Members() {
     queryFn: async () => {
       const { data } = await supabase
         .from("members")
-        .select("id,full_name,phone,village,membership_number,joined_on")
+        .select("id,full_name,phone,village,membership_number,join_date")
         .order("created_at", { ascending: false });
       return data ?? [];
     },
@@ -79,7 +79,7 @@ function Members() {
                   <td className="px-4 py-3 font-medium">{m.full_name}</td>
                   <td className="px-4 py-3">{m.phone ?? "—"}</td>
                   <td className="px-4 py-3">{m.village ?? "—"}</td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground">{m.joined_on ? new Date(m.joined_on).toLocaleDateString() : "—"}</td>
+                  <td className="px-4 py-3 text-xs text-muted-foreground">{m.join_date ? new Date(m.join_date).toLocaleDateString() : "—"}</td>
                 </tr>
               ))}
             </tbody>

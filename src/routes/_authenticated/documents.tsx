@@ -16,8 +16,8 @@ function Documents() {
     queryFn: async () => {
       const { data } = await supabase
         .from("documents")
-        .select("id,title,description,file_type,file_size,created_at,category")
-        .order("created_at", { ascending: false });
+        .select("id,title,description,file_type,file_size,uploaded_at,category")
+        .order("uploaded_at", { ascending: false });
       return data ?? [];
     },
   });
@@ -64,7 +64,7 @@ function Documents() {
                 <div className="min-w-0 flex-1">
                   <div className="truncate font-medium">{d.title}</div>
                   <div className="truncate text-xs text-muted-foreground">
-                    {d.category ?? "General"} · {d.file_type ?? ""} · {new Date(d.created_at).toLocaleDateString()}
+                    {d.category ?? "General"} · {d.file_type ?? ""} · {new Date(d.uploaded_at).toLocaleDateString()}
                   </div>
                 </div>
                 <button className="rounded-md border border-border p-2 hover:bg-muted" title="Download">
