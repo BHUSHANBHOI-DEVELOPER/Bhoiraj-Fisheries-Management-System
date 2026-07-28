@@ -59,5 +59,3 @@ export const Route = createFileRoute("/api/chat")({
   },
 });
 
-// Unused, avoids unused-import lint if createServerFileRoute is not needed
-void createServerFileRoute;
