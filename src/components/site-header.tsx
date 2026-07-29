@@ -107,10 +107,19 @@ export function SiteHeader() {
                 {t("nav.dashboard")}
               </Link>
             ) : (
-              <Link to="/auth" onClick={() => setOpen(false)} className="rounded-md bg-primary px-3 py-2 text-sm text-primary-foreground">
-                {t("nav.signin")}
-              </Link>
+              <>
+                <Link to="/auth" search={{ profile: "chairman", redirect: "/admin" }} onClick={() => setOpen(false)} className="rounded-md bg-saffron px-3 py-2 text-sm text-saffron-foreground">
+                  Chairman Login
+                </Link>
+                <Link to="/auth" search={{ profile: "member", redirect: "/dashboard" }} onClick={() => setOpen(false)} className="rounded-md bg-primary px-3 py-2 text-sm text-primary-foreground">
+                  Member Login
+                </Link>
+                <Link to="/register" onClick={() => setOpen(false)} className="rounded-md border border-border px-3 py-2 text-sm">
+                  New member registration
+                </Link>
+              </>
             )}
+
           </div>
         </div>
       )}
