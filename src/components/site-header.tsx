@@ -71,13 +71,24 @@ export function SiteHeader() {
               </button>
             </>
           ) : (
-            <Link
-              to="/auth"
-              className="hidden rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 md:inline-flex"
-            >
-              {t("nav.signin")}
-            </Link>
+            <>
+              <Link
+                to="/auth"
+                search={{ profile: "chairman", redirect: "/admin" }}
+                className="hidden rounded-md bg-saffron px-3 py-1.5 text-sm font-medium text-saffron-foreground hover:brightness-95 md:inline-flex"
+              >
+                Chairman Login
+              </Link>
+              <Link
+                to="/auth"
+                search={{ profile: "member", redirect: "/dashboard" }}
+                className="hidden rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 md:inline-flex"
+              >
+                Member Login
+              </Link>
+            </>
           )}
+
           <button onClick={() => setOpen((v) => !v)} className="rounded-md border border-border p-1.5 md:hidden">
             {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
           </button>
