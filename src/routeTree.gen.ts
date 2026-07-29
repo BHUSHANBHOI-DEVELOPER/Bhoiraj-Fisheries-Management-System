@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SchemesRouteImport } from './routes/schemes'
+import { Route as RegisteredMembersRouteImport } from './routes/registered-members'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -28,6 +29,11 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 const SchemesRoute = SchemesRouteImport.update({
   id: '/schemes',
   path: '/schemes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegisteredMembersRoute = RegisteredMembersRouteImport.update({
+  id: '/registered-members',
+  path: '/registered-members',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RegisterRoute = RegisterRouteImport.update({
@@ -107,6 +113,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/register': typeof RegisterRoute
+  '/registered-members': typeof RegisteredMembersRoute
   '/schemes': typeof SchemesRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/announcements': typeof AuthenticatedAnnouncementsRoute
@@ -123,6 +130,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/register': typeof RegisterRoute
+  '/registered-members': typeof RegisteredMembersRoute
   '/schemes': typeof SchemesRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/announcements': typeof AuthenticatedAnnouncementsRoute
@@ -141,6 +149,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/register': typeof RegisterRoute
+  '/registered-members': typeof RegisteredMembersRoute
   '/schemes': typeof SchemesRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/announcements': typeof AuthenticatedAnnouncementsRoute
@@ -159,6 +168,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contact'
     | '/register'
+    | '/registered-members'
     | '/schemes'
     | '/admin'
     | '/announcements'
@@ -175,6 +185,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contact'
     | '/register'
+    | '/registered-members'
     | '/schemes'
     | '/admin'
     | '/announcements'
@@ -192,6 +203,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contact'
     | '/register'
+    | '/registered-members'
     | '/schemes'
     | '/_authenticated/admin'
     | '/_authenticated/announcements'
@@ -210,6 +222,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ContactRoute: typeof ContactRoute
   RegisterRoute: typeof RegisterRoute
+  RegisteredMembersRoute: typeof RegisteredMembersRoute
   SchemesRoute: typeof SchemesRoute
   ApiChatRoute: typeof ApiChatRoute
 }
@@ -221,6 +234,13 @@ declare module '@tanstack/react-router' {
       path: '/schemes'
       fullPath: '/schemes'
       preLoaderRoute: typeof SchemesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/registered-members': {
+      id: '/registered-members'
+      path: '/registered-members'
+      fullPath: '/registered-members'
+      preLoaderRoute: typeof RegisteredMembersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/register': {
@@ -354,6 +374,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ContactRoute: ContactRoute,
   RegisterRoute: RegisterRoute,
+  RegisteredMembersRoute: RegisteredMembersRoute,
   SchemesRoute: SchemesRoute,
   ApiChatRoute: ApiChatRoute,
 }
