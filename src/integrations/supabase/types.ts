@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          achieved_on: string | null
+          body: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          image_url: string | null
+          is_published: boolean
+          summary: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          achieved_on?: string | null
+          body?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          image_url?: string | null
+          is_published?: boolean
+          summary?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          achieved_on?: string | null
+          body?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          image_url?: string | null
+          is_published?: boolean
+          summary?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       announcements: {
         Row: {
           body: string | null
@@ -159,6 +198,57 @@ export type Database = {
           },
         ]
       }
+      dams: {
+        Row: {
+          capacity: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          district: string | null
+          id: string
+          image_url: string | null
+          is_published: boolean
+          latest_news: string | null
+          name: string
+          taluka: string | null
+          updated_at: string
+          village: string | null
+          water_area: string | null
+        }
+        Insert: {
+          capacity?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          district?: string | null
+          id?: string
+          image_url?: string | null
+          is_published?: boolean
+          latest_news?: string | null
+          name: string
+          taluka?: string | null
+          updated_at?: string
+          village?: string | null
+          water_area?: string | null
+        }
+        Update: {
+          capacity?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          district?: string | null
+          id?: string
+          image_url?: string | null
+          is_published?: boolean
+          latest_news?: string | null
+          name?: string
+          taluka?: string | null
+          updated_at?: string
+          village?: string | null
+          water_area?: string | null
+        }
+        Relationships: []
+      }
       documents: {
         Row: {
           category: string
@@ -216,22 +306,36 @@ export type Database = {
             referencedRelation: "members"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "documents_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       members: {
         Row: {
           aadhaar_last4: string | null
+          aadhaar_number: string | null
           address: string | null
+          approval_status: string
+          approved_at: string | null
+          approved_by: string | null
           created_at: string
           created_by: string | null
           district: string | null
           dob: string | null
           email: string | null
+          eshram_number: string | null
           family_details: Json | null
+          father_husband_name: string | null
           father_name: string | null
           full_name: string
           gender: string | null
           id: string
+          is_public: boolean
           join_date: string | null
           membership_number: string
           notes: string | null
@@ -239,6 +343,7 @@ export type Database = {
           pan: string | null
           phone: string | null
           status: string
+          surname: string | null
           taluka: string | null
           updated_at: string
           user_id: string | null
@@ -246,17 +351,24 @@ export type Database = {
         }
         Insert: {
           aadhaar_last4?: string | null
+          aadhaar_number?: string | null
           address?: string | null
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
           created_at?: string
           created_by?: string | null
           district?: string | null
           dob?: string | null
           email?: string | null
+          eshram_number?: string | null
           family_details?: Json | null
+          father_husband_name?: string | null
           father_name?: string | null
           full_name: string
           gender?: string | null
           id?: string
+          is_public?: boolean
           join_date?: string | null
           membership_number: string
           notes?: string | null
@@ -264,6 +376,7 @@ export type Database = {
           pan?: string | null
           phone?: string | null
           status?: string
+          surname?: string | null
           taluka?: string | null
           updated_at?: string
           user_id?: string | null
@@ -271,17 +384,24 @@ export type Database = {
         }
         Update: {
           aadhaar_last4?: string | null
+          aadhaar_number?: string | null
           address?: string | null
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
           created_at?: string
           created_by?: string | null
           district?: string | null
           dob?: string | null
           email?: string | null
+          eshram_number?: string | null
           family_details?: Json | null
+          father_husband_name?: string | null
           father_name?: string | null
           full_name?: string
           gender?: string | null
           id?: string
+          is_public?: boolean
           join_date?: string | null
           membership_number?: string
           notes?: string | null
@@ -289,10 +409,122 @@ export type Database = {
           pan?: string | null
           phone?: string | null
           status?: string
+          surname?: string | null
           taluka?: string | null
           updated_at?: string
           user_id?: string | null
           village?: string | null
+        }
+        Relationships: []
+      }
+      membership_applications: {
+        Row: {
+          aadhaar_number: string
+          address: string | null
+          created_at: string
+          district: string | null
+          dob: string
+          email: string | null
+          eshram_number: string | null
+          father_husband_name: string | null
+          full_name: string
+          id: string
+          pan: string | null
+          phone: string
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          surname: string | null
+          taluka: string | null
+          updated_at: string
+          user_id: string | null
+          village: string | null
+        }
+        Insert: {
+          aadhaar_number: string
+          address?: string | null
+          created_at?: string
+          district?: string | null
+          dob: string
+          email?: string | null
+          eshram_number?: string | null
+          father_husband_name?: string | null
+          full_name: string
+          id?: string
+          pan?: string | null
+          phone: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          surname?: string | null
+          taluka?: string | null
+          updated_at?: string
+          user_id?: string | null
+          village?: string | null
+        }
+        Update: {
+          aadhaar_number?: string
+          address?: string | null
+          created_at?: string
+          district?: string | null
+          dob?: string
+          email?: string | null
+          eshram_number?: string | null
+          father_husband_name?: string | null
+          full_name?: string
+          id?: string
+          pan?: string | null
+          phone?: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          surname?: string | null
+          taluka?: string | null
+          updated_at?: string
+          user_id?: string | null
+          village?: string | null
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          category: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_broadcast: boolean
+          link: string | null
+          read_at: string | null
+          recipient_id: string | null
+          title: string
+        }
+        Insert: {
+          body?: string | null
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_broadcast?: boolean
+          link?: string | null
+          read_at?: string | null
+          recipient_id?: string | null
+          title: string
+        }
+        Update: {
+          body?: string | null
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_broadcast?: boolean
+          link?: string | null
+          read_at?: string | null
+          recipient_id?: string | null
+          title?: string
         }
         Relationships: []
       }
@@ -344,6 +576,117 @@ export type Database = {
         }
         Relationships: []
       }
+      promo_images: {
+        Row: {
+          caption: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          image_url: string
+          is_active: boolean
+          link_url: string | null
+          sort_order: number
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          image_url: string
+          is_active?: boolean
+          link_url?: string | null
+          sort_order?: number
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          image_url?: string
+          is_active?: boolean
+          link_url?: string | null
+          sort_order?: number
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      schemes: {
+        Row: {
+          body: string | null
+          category: string | null
+          created_at: string
+          created_by: string | null
+          external_url: string | null
+          id: string
+          image_url: string | null
+          is_published: boolean
+          sort_order: number
+          summary: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body?: string | null
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          external_url?: string | null
+          id?: string
+          image_url?: string | null
+          is_published?: boolean
+          sort_order?: number
+          summary?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string | null
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          external_url?: string | null
+          id?: string
+          image_url?: string | null
+          is_published?: boolean
+          sort_order?: number
+          summary?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      site_content: {
+        Row: {
+          body: string | null
+          image_url: string | null
+          key: string
+          title: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          body?: string | null
+          image_url?: string | null
+          key: string
+          title?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          body?: string | null
+          image_url?: string | null
+          key?: string
+          title?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -367,7 +710,39 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      members_public: {
+        Row: {
+          district: string | null
+          full_name: string | null
+          id: string | null
+          join_date: string | null
+          membership_number: string | null
+          surname: string | null
+          taluka: string | null
+          village: string | null
+        }
+        Insert: {
+          district?: string | null
+          full_name?: string | null
+          id?: string | null
+          join_date?: string | null
+          membership_number?: string | null
+          surname?: string | null
+          taluka?: string | null
+          village?: string | null
+        }
+        Update: {
+          district?: string | null
+          full_name?: string | null
+          id?: string | null
+          join_date?: string | null
+          membership_number?: string | null
+          surname?: string | null
+          taluka?: string | null
+          village?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
