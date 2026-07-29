@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { CreditCard, Fish, HandCoins, GraduationCap, ShieldCheck, TrendingUp, Search } from "lucide-react";
 
 export const Route = createFileRoute("/schemes")({
