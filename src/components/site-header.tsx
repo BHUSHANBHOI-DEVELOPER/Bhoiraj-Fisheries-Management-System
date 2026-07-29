@@ -14,9 +14,13 @@ export function SiteHeader() {
   const navItems = [
     { to: "/", label: t("nav.home") },
     { to: "/about", label: t("nav.about") },
+    { to: "/lakes-and-dams", label: "Lakes & Dams" },
+    { to: "/registered-members", label: "Members" },
+    { to: "/achievements", label: "Achievements" },
     { to: "/schemes", label: t("nav.schemes") },
     { to: "/contact", label: t("nav.contact") },
   ];
+
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur">
