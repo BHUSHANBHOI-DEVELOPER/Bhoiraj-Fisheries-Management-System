@@ -23,7 +23,9 @@ function Layout() {
     { to: "/documents", icon: FileText, label: t("nav.documents") },
     { to: "/audits", icon: Waves, label: "Dam Audits" },
     { to: "/chat", icon: Bot, label: t("nav.chat") },
+    { to: "/notifications", icon: Megaphone, label: "Notifications" },
     { to: "/announcements", icon: Megaphone, label: "Announcements" },
+
   ] as const;
 
   return (
