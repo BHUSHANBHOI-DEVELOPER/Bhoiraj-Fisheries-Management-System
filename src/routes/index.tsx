@@ -102,7 +102,11 @@ function Home() {
         </div>
       </section>
 
+      <PromoStrip />
+      <AchievementsPreview />
+
       {/* FEATURES */}
+
       <section className="mx-auto max-w-7xl px-4 py-20">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="font-display text-3xl font-bold text-foreground md:text-4xl">{t("features.title")}</h2>
@@ -194,5 +198,64 @@ function InfoRow({ label, value }: { label: string; value: string }) {
       <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
       <div className="mt-0.5 font-medium text-foreground">{value}</div>
     </div>
+  );
+}
+
+function PromoStrip() {
+  const { data = [] } = useQuery({
+    queryKey: ["promos-public"],
+    queryFn: async () =>
+      (await supabase.from("promo_images").select("*").eq("is_active", true).order("sort_order")).data ?? [],
+  });
+  if (data.length === 0) return null;
+  return (
+    <section className="mx-auto max-w-7xl px-4 pt-16">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {data.map((p) => (
+          <figure key={p.id} className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+            <img src={p.image_url} alt={p.title ?? "Society promotion"} loading="lazy" className="h-56 w-full object-cover" />
+            {(p.title || p.caption) && (
+              <figcaption className="p-4">
+                {p.title && <div className="font-display font-semibold">{p.title}</div>}
+                {p.caption && <div className="mt-1 text-sm text-muted-foreground">{p.caption}</div>}
+              </figcaption>
+            )}
+          </figure>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function AchievementsPreview() {
+  const { data = [] } = useQuery({
+    queryKey: ["achievements-preview"],
+    queryFn: async () =>
+      (await supabase.from("achievements").select("id,title,summary,image_url").eq("is_published", true).limit(3)).data ?? [],
+  });
+  return (
+    <section className="mx-auto max-w-7xl px-4 pt-16">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <h2 className="font-display text-3xl font-bold">Achievements</h2>
+        <Link to="/achievements" className="inline-flex items-center gap-2 rounded-md border border-border px-4 py-2 text-sm font-medium hover:bg-muted">
+          View all achievements <ArrowRight className="h-4 w-4" />
+        </Link>
+      </div>
+      {data.length === 0 ? (
+        <p className="mt-4 text-sm text-muted-foreground">Achievements published by the Chairman will appear here.</p>
+      ) : (
+        <div className="mt-6 grid gap-6 md:grid-cols-3">
+          {data.map((a) => (
+            <Link key={a.id} to="/achievements" className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition hover:-translate-y-1 hover:shadow-elev">
+              {a.image_url && <img src={a.image_url} alt={a.title} loading="lazy" className="h-40 w-full object-cover" />}
+              <div className="p-5">
+                <div className="font-display text-lg font-semibold">{a.title}</div>
+                {a.summary && <p className="mt-1 text-sm text-muted-foreground">{a.summary}</p>}
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
+    </section>
   );
 }

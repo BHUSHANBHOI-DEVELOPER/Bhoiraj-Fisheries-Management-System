@@ -10,12 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SchemesRouteImport } from './routes/schemes'
+import { Route as RegisteredMembersRouteImport } from './routes/registered-members'
+import { Route as RegisterRouteImport } from './routes/register'
+import { Route as LakesAndDamsRouteImport } from './routes/lakes-and-dams'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AchievementsRouteImport } from './routes/achievements'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedMembersRouteImport } from './routes/_authenticated/members'
 import { Route as AuthenticatedDocumentsRouteImport } from './routes/_authenticated/documents'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -29,6 +34,21 @@ const SchemesRoute = SchemesRouteImport.update({
   path: '/schemes',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RegisteredMembersRoute = RegisteredMembersRouteImport.update({
+  id: '/registered-members',
+  path: '/registered-members',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LakesAndDamsRoute = LakesAndDamsRouteImport.update({
+  id: '/lakes-and-dams',
+  path: '/lakes-and-dams',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
@@ -37,6 +57,11 @@ const ContactRoute = ContactRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AchievementsRoute = AchievementsRouteImport.update({
+  id: '/achievements',
+  path: '/achievements',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -58,6 +83,12 @@ const ApiChatRoute = ApiChatRouteImport.update({
   path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedNotificationsRoute =
+  AuthenticatedNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedMembersRoute = AuthenticatedMembersRouteImport.update({
   id: '/members',
   path: '/members',
@@ -98,8 +129,12 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/achievements': typeof AchievementsRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
+  '/lakes-and-dams': typeof LakesAndDamsRoute
+  '/register': typeof RegisterRoute
+  '/registered-members': typeof RegisteredMembersRoute
   '/schemes': typeof SchemesRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/announcements': typeof AuthenticatedAnnouncementsRoute
@@ -108,13 +143,18 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/documents': typeof AuthenticatedDocumentsRoute
   '/members': typeof AuthenticatedMembersRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
   '/api/chat': typeof ApiChatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/achievements': typeof AchievementsRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
+  '/lakes-and-dams': typeof LakesAndDamsRoute
+  '/register': typeof RegisterRoute
+  '/registered-members': typeof RegisteredMembersRoute
   '/schemes': typeof SchemesRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/announcements': typeof AuthenticatedAnnouncementsRoute
@@ -123,6 +163,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/documents': typeof AuthenticatedDocumentsRoute
   '/members': typeof AuthenticatedMembersRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
   '/api/chat': typeof ApiChatRoute
 }
 export interface FileRoutesById {
@@ -130,8 +171,12 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/about': typeof AboutRoute
+  '/achievements': typeof AchievementsRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
+  '/lakes-and-dams': typeof LakesAndDamsRoute
+  '/register': typeof RegisterRoute
+  '/registered-members': typeof RegisteredMembersRoute
   '/schemes': typeof SchemesRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/announcements': typeof AuthenticatedAnnouncementsRoute
@@ -140,6 +185,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/documents': typeof AuthenticatedDocumentsRoute
   '/_authenticated/members': typeof AuthenticatedMembersRoute
+  '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/api/chat': typeof ApiChatRoute
 }
 export interface FileRouteTypes {
@@ -147,8 +193,12 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/achievements'
     | '/auth'
     | '/contact'
+    | '/lakes-and-dams'
+    | '/register'
+    | '/registered-members'
     | '/schemes'
     | '/admin'
     | '/announcements'
@@ -157,13 +207,18 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/documents'
     | '/members'
+    | '/notifications'
     | '/api/chat'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
+    | '/achievements'
     | '/auth'
     | '/contact'
+    | '/lakes-and-dams'
+    | '/register'
+    | '/registered-members'
     | '/schemes'
     | '/admin'
     | '/announcements'
@@ -172,14 +227,19 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/documents'
     | '/members'
+    | '/notifications'
     | '/api/chat'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/about'
+    | '/achievements'
     | '/auth'
     | '/contact'
+    | '/lakes-and-dams'
+    | '/register'
+    | '/registered-members'
     | '/schemes'
     | '/_authenticated/admin'
     | '/_authenticated/announcements'
@@ -188,6 +248,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/documents'
     | '/_authenticated/members'
+    | '/_authenticated/notifications'
     | '/api/chat'
   fileRoutesById: FileRoutesById
 }
@@ -195,8 +256,12 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AboutRoute: typeof AboutRoute
+  AchievementsRoute: typeof AchievementsRoute
   AuthRoute: typeof AuthRoute
   ContactRoute: typeof ContactRoute
+  LakesAndDamsRoute: typeof LakesAndDamsRoute
+  RegisterRoute: typeof RegisterRoute
+  RegisteredMembersRoute: typeof RegisteredMembersRoute
   SchemesRoute: typeof SchemesRoute
   ApiChatRoute: typeof ApiChatRoute
 }
@@ -208,6 +273,27 @@ declare module '@tanstack/react-router' {
       path: '/schemes'
       fullPath: '/schemes'
       preLoaderRoute: typeof SchemesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/registered-members': {
+      id: '/registered-members'
+      path: '/registered-members'
+      fullPath: '/registered-members'
+      preLoaderRoute: typeof RegisteredMembersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lakes-and-dams': {
+      id: '/lakes-and-dams'
+      path: '/lakes-and-dams'
+      fullPath: '/lakes-and-dams'
+      preLoaderRoute: typeof LakesAndDamsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -222,6 +308,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/achievements': {
+      id: '/achievements'
+      path: '/achievements'
+      fullPath: '/achievements'
+      preLoaderRoute: typeof AchievementsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -251,6 +344,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/chat'
       preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/notifications': {
+      id: '/_authenticated/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/members': {
       id: '/_authenticated/members'
@@ -312,6 +412,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDocumentsRoute: typeof AuthenticatedDocumentsRoute
   AuthenticatedMembersRoute: typeof AuthenticatedMembersRoute
+  AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -322,6 +423,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDocumentsRoute: AuthenticatedDocumentsRoute,
   AuthenticatedMembersRoute: AuthenticatedMembersRoute,
+  AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -331,21 +433,15 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AboutRoute: AboutRoute,
+  AchievementsRoute: AchievementsRoute,
   AuthRoute: AuthRoute,
   ContactRoute: ContactRoute,
+  LakesAndDamsRoute: LakesAndDamsRoute,
+  RegisterRoute: RegisterRoute,
+  RegisteredMembersRoute: RegisteredMembersRoute,
   SchemesRoute: SchemesRoute,
   ApiChatRoute: ApiChatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

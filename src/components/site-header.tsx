@@ -14,9 +14,13 @@ export function SiteHeader() {
   const navItems = [
     { to: "/", label: t("nav.home") },
     { to: "/about", label: t("nav.about") },
+    { to: "/lakes-and-dams", label: "Lakes & Dams" },
+    { to: "/registered-members", label: "Members" },
+    { to: "/achievements", label: "Achievements" },
     { to: "/schemes", label: t("nav.schemes") },
     { to: "/contact", label: t("nav.contact") },
   ];
+
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur">
@@ -67,13 +71,24 @@ export function SiteHeader() {
               </button>
             </>
           ) : (
-            <Link
-              to="/auth"
-              className="hidden rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 md:inline-flex"
-            >
-              {t("nav.signin")}
-            </Link>
+            <>
+              <Link
+                to="/auth"
+                search={{ profile: "chairman", redirect: "/admin" }}
+                className="hidden rounded-md bg-saffron px-3 py-1.5 text-sm font-medium text-saffron-foreground hover:brightness-95 md:inline-flex"
+              >
+                Chairman Login
+              </Link>
+              <Link
+                to="/auth"
+                search={{ profile: "member", redirect: "/dashboard" }}
+                className="hidden rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 md:inline-flex"
+              >
+                Member Login
+              </Link>
+            </>
           )}
+
           <button onClick={() => setOpen((v) => !v)} className="rounded-md border border-border p-1.5 md:hidden">
             {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
           </button>
@@ -92,10 +107,19 @@ export function SiteHeader() {
                 {t("nav.dashboard")}
               </Link>
             ) : (
-              <Link to="/auth" onClick={() => setOpen(false)} className="rounded-md bg-primary px-3 py-2 text-sm text-primary-foreground">
-                {t("nav.signin")}
-              </Link>
+              <>
+                <Link to="/auth" search={{ profile: "chairman", redirect: "/admin" }} onClick={() => setOpen(false)} className="rounded-md bg-saffron px-3 py-2 text-sm text-saffron-foreground">
+                  Chairman Login
+                </Link>
+                <Link to="/auth" search={{ profile: "member", redirect: "/dashboard" }} onClick={() => setOpen(false)} className="rounded-md bg-primary px-3 py-2 text-sm text-primary-foreground">
+                  Member Login
+                </Link>
+                <Link to="/register" onClick={() => setOpen(false)} className="rounded-md border border-border px-3 py-2 text-sm">
+                  New member registration
+                </Link>
+              </>
             )}
+
           </div>
         </div>
       )}

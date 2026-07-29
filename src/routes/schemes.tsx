@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { CreditCard, Fish, HandCoins, GraduationCap, ShieldCheck, TrendingUp, Search } from "lucide-react";
 
 export const Route = createFileRoute("/schemes")({
@@ -24,6 +26,19 @@ const items = [
 ];
 
 function Schemes() {
+  const { data: custom = [] } = useQuery({
+    queryKey: ["schemes-public"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("schemes")
+        .select("*")
+        .eq("is_published", true)
+        .order("sort_order")
+        .order("created_at", { ascending: false });
+      return data ?? [];
+    },
+  });
+
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
@@ -42,8 +57,32 @@ function Schemes() {
             </div>
           ))}
         </div>
+
+        {custom.length > 0 && (
+          <>
+            <h2 className="mt-16 font-display text-2xl font-bold">Schemes announced by the society</h2>
+            <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {custom.map((s) => (
+                <article key={s.id} className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+                  {s.image_url && <img src={s.image_url} alt={s.title} loading="lazy" className="h-40 w-full object-cover" />}
+                  <div className="p-6">
+                    <h3 className="font-display text-lg font-semibold">{s.title}</h3>
+                    {s.summary && <p className="mt-1 text-sm text-muted-foreground">{s.summary}</p>}
+                    {s.body && <p className="mt-3 whitespace-pre-line text-sm text-foreground/80">{s.body}</p>}
+                    {s.external_url && (
+                      <a href={s.external_url} target="_blank" rel="noreferrer" className="mt-3 inline-block text-sm font-medium text-primary hover:underline">
+                        Read more →
+                      </a>
+                    )}
+                  </div>
+                </article>
+              ))}
+            </div>
+          </>
+        )}
       </section>
       <SiteFooter />
     </div>
   );
 }
+
