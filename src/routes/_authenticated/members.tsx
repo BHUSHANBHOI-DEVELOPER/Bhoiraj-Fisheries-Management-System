@@ -6,7 +6,7 @@ import { Users, Search, ShieldAlert } from "lucide-react";
 import { useState } from "react";
 
 export const Route = createFileRoute("/_authenticated/members")({
-  head: () => ({ meta: [{ title: "Members | Bhoraj Fisheries" }] }),
+  head: () => ({ meta: [{ title: "Members | Bhoiraj Matsya Sanstha" }] }),
   component: Members,
 });
 

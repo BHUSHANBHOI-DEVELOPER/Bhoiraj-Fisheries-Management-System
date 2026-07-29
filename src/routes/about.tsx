@@ -7,8 +7,8 @@ import { useI18n } from "@/lib/i18n";
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About | Bhoraj Fisheries Cooperative Society" },
-      { name: "description", content: "About Bhoraj Fisheries Cooperative Society — registered in 2004, serving fishermen across Pimpri, Dambhurni and Ghodasgaon." },
+      { title: "About | Bhoiraj Matsya Vyavsayik Sahakari Sanstha Maryadit, Pimpalgaon Bk." },
+      { name: "description", content: "About Bhoiraj Matsya Vyavsayik Sahakari Sanstha Maryadit, Pimpalgaon Bk. — registered in 2004, serving fishermen across Pimpri, Dambhurni and Ghodasgaon." },
     ],
   }),
   component: About,

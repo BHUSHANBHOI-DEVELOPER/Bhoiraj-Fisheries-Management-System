@@ -34,9 +34,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Bhoraj Fisheries Cooperative Society | Digital Member Portal" },
-      { name: "description", content: "Official portal for Bhoraj Fisheries Cooperative Society — member registry, dam audit reports, document vault and AI assistant. Reg. No. JGA/AGR/PCR OD/530." },
-      { property: "og:title", content: "Bhoraj Fisheries Cooperative Society" },
+      { title: "Bhoiraj Matsya Vyavsayik Sahakari Sanstha Maryadit, Pimpalgaon Bk. | Digital Member Portal" },
+      { name: "description", content: "Official portal for Bhoiraj Matsya Vyavsayik Sahakari Sanstha Maryadit, Pimpalgaon Bk. — member registry, dam audit reports, document vault and AI assistant. Reg. No. JGA/AGR/PCR OD/530." },
+      { property: "og:title", content: "Bhoiraj Matsya Vyavsayik Sahakari Sanstha Maryadit, Pimpalgaon Bk." },
       { property: "og:description", content: "Digital platform for members, documents and dam audits. Serving Pimpri–Dambhurni–Ghodasgaon since 2004." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

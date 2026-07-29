@@ -8,7 +8,7 @@ import { useAuth } from "@/lib/auth-context";
 import ReactMarkdown from "react-markdown";
 
 export const Route = createFileRoute("/_authenticated/chat")({
-  head: () => ({ meta: [{ title: "AI Assistant | Bhoraj Fisheries" }] }),
+  head: () => ({ meta: [{ title: "AI Assistant | Bhoiraj Matsya Sanstha" }] }),
   component: ChatPage,
 });
 
@@ -26,10 +26,10 @@ function ChatPage() {
       parts: [{
         type: "text",
         text: lang === "hi"
-          ? "नमस्ते! मैं भोराज मत्स्य सहकारी संस्था का AI सहायक हूँ। दस्तावेज़, बांध ऑडिट, सदस्यता या योजनाओं के बारे में कुछ भी पूछें।"
+          ? "नमस्ते! मैं भोईराज मत्स्य व्यवसायिक सहकारी संस्था मर्यादित, पिंपळगाव बु. का AI सहायक हूँ। दस्तावेज़, बांध ऑडिट, सदस्यता या योजनाओं के बारे में कुछ भी पूछें।"
           : lang === "mr"
-          ? "नमस्कार! मी भोराज मत्स्य सहकारी संस्थेचा AI सहाय्यक आहे. कागदपत्रे, धरण लेखापरीक्षण, सदस्यत्व किंवा योजनांबद्दल काहीही विचारा."
-          : "Hello! I'm the AI assistant for Bhoraj Fisheries Cooperative Society. Ask me anything about documents, dam audits, membership, or government schemes.",
+          ? "नमस्कार! मी भोईराज मत्स्य व्यवसायिक सहकारी संस्था मर्यादितचा AI सहाय्यक आहे. कागदपत्रे, धरण लेखापरीक्षण, सदस्यत्व किंवा योजनांबद्दल काहीही विचारा."
+          : "Hello! I'm the AI assistant for Bhoiraj Matsya Vyavsayik Sahakari Sanstha Maryadit, Pimpalgaon Bk.. Ask me anything about documents, dam audits, membership, or government schemes.",
       }],
     },
   ];

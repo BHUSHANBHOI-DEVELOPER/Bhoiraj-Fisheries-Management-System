@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { FileText, Users, Waves, Bot, Megaphone, ArrowUpRight } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
-  head: () => ({ meta: [{ title: "Dashboard | Bhoraj Fisheries" }] }),
+  head: () => ({ meta: [{ title: "Dashboard | Bhoiraj Matsya Sanstha" }] }),
   component: Dashboard,
 });
 

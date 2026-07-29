@@ -4,7 +4,7 @@ import { ShieldAlert, Users, FileText, Waves, Megaphone } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authenticated/admin")({
-  head: () => ({ meta: [{ title: "Admin | Bhoraj Fisheries" }] }),
+  head: () => ({ meta: [{ title: "Admin | Bhoiraj Matsya Sanstha" }] }),
   component: Admin,
 });
 

@@ -5,7 +5,7 @@ import { FileText, Download, Search } from "lucide-react";
 import { useState } from "react";
 
 export const Route = createFileRoute("/_authenticated/documents")({
-  head: () => ({ meta: [{ title: "Documents | Bhoraj Fisheries" }] }),
+  head: () => ({ meta: [{ title: "Documents | Bhoiraj Matsya Sanstha" }] }),
   component: Documents,
 });
 
