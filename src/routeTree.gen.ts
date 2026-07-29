@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SchemesRouteImport } from './routes/schemes'
 import { Route as RegisteredMembersRouteImport } from './routes/registered-members'
 import { Route as RegisterRouteImport } from './routes/register'
+import { Route as LakesAndDamsRouteImport } from './routes/lakes-and-dams'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AboutRouteImport } from './routes/about'
@@ -39,6 +40,11 @@ const RegisteredMembersRoute = RegisteredMembersRouteImport.update({
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LakesAndDamsRoute = LakesAndDamsRouteImport.update({
+  id: '/lakes-and-dams',
+  path: '/lakes-and-dams',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
@@ -112,6 +118,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
+  '/lakes-and-dams': typeof LakesAndDamsRoute
   '/register': typeof RegisterRoute
   '/registered-members': typeof RegisteredMembersRoute
   '/schemes': typeof SchemesRoute
@@ -129,6 +136,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
+  '/lakes-and-dams': typeof LakesAndDamsRoute
   '/register': typeof RegisterRoute
   '/registered-members': typeof RegisteredMembersRoute
   '/schemes': typeof SchemesRoute
@@ -148,6 +156,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
+  '/lakes-and-dams': typeof LakesAndDamsRoute
   '/register': typeof RegisterRoute
   '/registered-members': typeof RegisteredMembersRoute
   '/schemes': typeof SchemesRoute
@@ -167,6 +176,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/auth'
     | '/contact'
+    | '/lakes-and-dams'
     | '/register'
     | '/registered-members'
     | '/schemes'
@@ -184,6 +194,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/auth'
     | '/contact'
+    | '/lakes-and-dams'
     | '/register'
     | '/registered-members'
     | '/schemes'
@@ -202,6 +213,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/auth'
     | '/contact'
+    | '/lakes-and-dams'
     | '/register'
     | '/registered-members'
     | '/schemes'
@@ -221,6 +233,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AuthRoute: typeof AuthRoute
   ContactRoute: typeof ContactRoute
+  LakesAndDamsRoute: typeof LakesAndDamsRoute
   RegisterRoute: typeof RegisterRoute
   RegisteredMembersRoute: typeof RegisteredMembersRoute
   SchemesRoute: typeof SchemesRoute
@@ -248,6 +261,13 @@ declare module '@tanstack/react-router' {
       path: '/register'
       fullPath: '/register'
       preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lakes-and-dams': {
+      id: '/lakes-and-dams'
+      path: '/lakes-and-dams'
+      fullPath: '/lakes-and-dams'
+      preLoaderRoute: typeof LakesAndDamsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -373,6 +393,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AuthRoute: AuthRoute,
   ContactRoute: ContactRoute,
+  LakesAndDamsRoute: LakesAndDamsRoute,
   RegisterRoute: RegisterRoute,
   RegisteredMembersRoute: RegisteredMembersRoute,
   SchemesRoute: SchemesRoute,
