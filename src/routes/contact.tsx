@@ -7,8 +7,8 @@ import { Mail, MapPin, Phone, User } from "lucide-react";
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "Contact | Bhoraj Fisheries Cooperative Society" },
-      { name: "description", content: "Contact the chairman and office of Bhoraj Fisheries Cooperative Society, Pimpalgaon Bk., Taluka Pachora, Jalgaon." },
+      { title: "Contact | Bhoiraj Matsya Vyavsayik Sahakari Sanstha Maryadit, Pimpalgaon Bk." },
+      { name: "description", content: "Contact the chairman and office of Bhoiraj Matsya Vyavsayik Sahakari Sanstha Maryadit, Pimpalgaon Bk., Pimpalgaon Bk., Taluka Pachora, Jalgaon." },
     ],
   }),
   component: Contact,

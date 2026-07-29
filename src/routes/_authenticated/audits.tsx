@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Waves, Calendar, IndianRupee } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/audits")({
-  head: () => ({ meta: [{ title: "Dam Audits | Bhoraj Fisheries" }] }),
+  head: () => ({ meta: [{ title: "Dam Audits | Bhoiraj Matsya Sanstha" }] }),
   component: Audits,
 });
 

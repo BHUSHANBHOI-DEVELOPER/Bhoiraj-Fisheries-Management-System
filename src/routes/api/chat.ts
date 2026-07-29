@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { convertToModelMessages, streamText, type UIMessage } from "ai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 
-const SYSTEM_PROMPT = `You are the AI assistant for Bhoraj Fisheries Cooperative Society (भोराज मत्स्य सहकारी संस्था), a registered cooperative in Pimpalgaon Bk., Taluka Pachora, District Jalgaon, Maharashtra, India.
+const SYSTEM_PROMPT = `You are the AI assistant for Bhoiraj Matsya Vyavsayik Sahakari Sanstha Maryadit, Pimpalgaon Bk. (भोईराज मत्स्य व्यवसायिक सहकारी संस्था मर्यादित, पिंपळगाव बु.), a registered cooperative in Pimpalgaon Bk., Taluka Pachora, District Jalgaon, Maharashtra, India.
 
 Key facts:
 - Registration No: JGA/AGR/PCR OD/530, established 22/06/2004

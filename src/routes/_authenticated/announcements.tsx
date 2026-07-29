@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Megaphone } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/announcements")({
-  head: () => ({ meta: [{ title: "Announcements | Bhoraj Fisheries" }] }),
+  head: () => ({ meta: [{ title: "Announcements | Bhoiraj Matsya Sanstha" }] }),
   component: Announcements,
 });
 

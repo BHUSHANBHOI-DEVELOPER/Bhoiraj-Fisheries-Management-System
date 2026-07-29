@@ -1,6 +1,6 @@
 export const SITE = {
-  name: "Bhoraj Fisheries Cooperative Society",
-  shortName: "Bhoraj Fisheries",
+  name: "Bhoiraj Matsya Vyavsayik Sahakari Sanstha Maryadit, Pimpalgaon Bk.",
+  shortName: "Bhoiraj Matsya Sanstha",
   regNo: "JGA/AGR/PCR OD/530",
   establishedOn: "22/06/2004",
   chairman: "Shri Bhika Shankar Bhoi",

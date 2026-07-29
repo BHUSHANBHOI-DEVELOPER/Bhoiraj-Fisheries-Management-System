@@ -19,9 +19,9 @@ export const dict: Dict = {
 
   "hero.badge": { en: "Registered Cooperative Society • Est. 2004", hi: "पंजीकृत सहकारी संस्था • स्था. 2004", mr: "नोंदणीकृत सहकारी संस्था • स्था. २००४" },
   "hero.title": {
-    en: "Bhoraj Fisheries Cooperative Society",
-    hi: "भोराज मत्स्य सहकारी संस्था",
-    mr: "भोराज मत्स्य सहकारी संस्था",
+    en: "Bhoiraj Matsya Vyavsayik Sahakari Sanstha Maryadit, Pimpalgaon Bk.",
+    hi: "भोईराज मत्स्य व्यवसायिक सहकारी संस्था मर्यादित, पिंपळगाव बु.",
+    mr: "भोईराज मत्स्य व्यवसायिक सहकारी संस्था मर्यादित, पिंपळगाव बु.",
   },
   "hero.subtitle": {
     en: "A secure digital platform for members, documents, audit reports and scheme benefits — one click access, anytime, anywhere.",
@@ -43,9 +43,9 @@ export const dict: Dict = {
 
   "society.title": { en: "About the Society", hi: "संस्था के बारे में", mr: "संस्थेविषयी" },
   "society.body": {
-    en: "Bhoraj Fisheries Cooperative Society is a government-registered cooperative operating in the Pimpri–Dambhurni–Ghodasgaon area of Jalgaon district, Maharashtra. Since 2004, we have supported member livelihoods through pond and dam-based fisheries, credit facilitation, and government scheme benefits.",
-    hi: "भोराज मत्स्य सहकारी संस्था, महाराष्ट्र के जलगाँव ज़िले के पिंपरी–डांभूर्णी–घोडासगाँव क्षेत्र में कार्यरत, एक सरकार-पंजीकृत सहकारी संस्था है। 2004 से हम तालाब और बांध आधारित मत्स्यपालन, ऋण सुविधा और सरकारी योजनाओं के माध्यम से सदस्यों की आजीविका को सहयोग दे रहे हैं।",
-    mr: "भोराज मत्स्य सहकारी संस्था ही जळगाव जिल्ह्यातील पिंपरी–डांभूर्णी–घोडासगाव भागात कार्यरत असलेली शासन-नोंदणीकृत सहकारी संस्था आहे. २००४ पासून आम्ही तलाव व धरण-आधारित मत्स्यव्यवसाय, कर्ज सुविधा आणि शासकीय योजनांच्या माध्यमातून सदस्यांच्या उपजीविकेस पाठिंबा देत आहोत.",
+    en: "Bhoiraj Matsya Vyavsayik Sahakari Sanstha Maryadit, Pimpalgaon Bk. is a government-registered cooperative operating in the Pimpri–Dambhurni–Ghodasgaon area of Jalgaon district, Maharashtra. Since 2004, we have supported member livelihoods through pond and dam-based fisheries, credit facilitation, and government scheme benefits.",
+    hi: "भोईराज मत्स्य व्यवसायिक सहकारी संस्था मर्यादित, पिंपळगाव बु., महाराष्ट्र के जलगाँव ज़िले के पिंपरी–डांभूर्णी–घोडासगाँव क्षेत्र में कार्यरत, एक सरकार-पंजीकृत सहकारी संस्था है। 2004 से हम तालाब और बांध आधारित मत्स्यपालन, ऋण सुविधा और सरकारी योजनाओं के माध्यम से सदस्यों की आजीविका को सहयोग दे रहे हैं।",
+    mr: "भोईराज मत्स्य व्यवसायिक सहकारी संस्था मर्यादित, पिंपळगाव बु. ही जळगाव जिल्ह्यातील पिंपरी–डांभूर्णी–घोडासगाव भागात कार्यरत असलेली शासन-नोंदणीकृत सहकारी संस्था आहे. २००४ पासून आम्ही तलाव व धरण-आधारित मत्स्यव्यवसाय, कर्ज सुविधा आणि शासकीय योजनांच्या माध्यमातून सदस्यांच्या उपजीविकेस पाठिंबा देत आहोत.",
   },
 
   "auth.title": { en: "Sign in to your portal", hi: "अपने पोर्टल में साइन इन करें", mr: "आपल्या पोर्टलवर साइन इन करा" },

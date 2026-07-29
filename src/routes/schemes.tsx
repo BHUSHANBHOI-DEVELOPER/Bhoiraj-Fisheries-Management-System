@@ -6,7 +6,7 @@ import { CreditCard, Fish, HandCoins, GraduationCap, ShieldCheck, TrendingUp, Se
 export const Route = createFileRoute("/schemes")({
   head: () => ({
     meta: [
-      { title: "Schemes | Bhoraj Fisheries Cooperative Society" },
+      { title: "Schemes | Bhoiraj Matsya Vyavsayik Sahakari Sanstha Maryadit, Pimpalgaon Bk." },
       { name: "description", content: "Government schemes supporting fisheries members — PM-MKSSY components including credit facilitation, aquaculture insurance, performance grants, and training." },
     ],
   }),

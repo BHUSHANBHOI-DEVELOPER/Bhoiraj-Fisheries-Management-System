@@ -11,7 +11,7 @@ import { z } from "zod";
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (s: Record<string, unknown>) => ({ redirect: typeof s.redirect === "string" ? s.redirect : "/dashboard" }),
-  head: () => ({ meta: [{ title: "Sign in | Bhoraj Fisheries Cooperative Society" }] }),
+  head: () => ({ meta: [{ title: "Sign in | Bhoiraj Matsya Vyavsayik Sahakari Sanstha Maryadit, Pimpalgaon Bk." }] }),
   component: AuthPage,
 });
 
@@ -81,7 +81,7 @@ function AuthPage() {
               <Fish className="h-6 w-6" />
             </div>
             <h1 className="mt-4 font-display text-2xl font-bold">{t("auth.title")}</h1>
-            <p className="mt-1 text-sm text-muted-foreground">Bhoraj Fisheries Cooperative Society</p>
+            <p className="mt-1 text-sm text-muted-foreground">Bhoiraj Matsya Vyavsayik Sahakari Sanstha Maryadit, Pimpalgaon Bk.</p>
           </div>
 
           <button
