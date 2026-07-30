@@ -1,5 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { createAdminInvite, decideAdminInvite } from "@/lib/admin-invites.functions";
+
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -23,12 +26,14 @@ export const Route = createFileRoute("/_authenticated/admin")({
 
 const TABS = [
   { id: "approvals", label: "Member approvals", icon: UserCheck },
+  { id: "admins", label: "Admin access", icon: ShieldAlert },
   { id: "notify", label: "Notifications", icon: Send },
   { id: "promos", label: "Promotional photos", icon: ImageIcon },
   { id: "achievements", label: "Achievements", icon: Trophy },
   { id: "dams", label: "Lakes & dams", icon: Waves },
   { id: "schemes", label: "Schemes", icon: Sparkles },
 ] as const;
+
 
 type TabId = (typeof TABS)[number]["id"];
 
@@ -69,6 +74,8 @@ function Admin() {
       </div>
 
       {tab === "approvals" && <Approvals />}
+      {tab === "admins" && <AdminAccessPanel />}
+
       {tab === "notify" && <NotifyPanel />}
       {tab === "promos" && <PromoPanel />}
       {tab === "achievements" && <AchievementPanel />}
@@ -78,7 +85,159 @@ function Admin() {
   );
 }
 
+/* ---------------- Admin access control ---------------- */
+
+function AdminAccessPanel() {
+  const qc = useQueryClient();
+  const [label, setLabel] = useState("");
+  const [email, setEmail] = useState("");
+  const [busy, setBusy] = useState(false);
+  const create = useServerFn(createAdminInvite);
+  const decide = useServerFn(decideAdminInvite);
+
+  const { data: invites = [] } = useQuery({
+    queryKey: ["admin_invites"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("admin_invites")
+        .select("id,code,label,email,status,created_at,claimed_at")
+        .order("created_at", { ascending: false });
+      return data ?? [];
+    },
+  });
+
+  const { data: log = [] } = useQuery({
+    queryKey: ["recovery_log"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("credential_recovery_log")
+        .select("id,identifier_type,identifier_masked,action,succeeded,created_at")
+        .order("created_at", { ascending: false })
+        .limit(30);
+      return data ?? [];
+    },
+  });
+
+  async function issue(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      const res = await create({ data: { label: label || undefined, email: email || undefined } });
+      setLabel("");
+      setEmail("");
+      toast.success(`Invite code created: ${res.code}`);
+      qc.invalidateQueries({ queryKey: ["admin_invites"] });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not create the code");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleDecide(inviteId: string, approve: boolean) {
+    try {
+      await decide({ data: { inviteId, approve } });
+      toast.success(approve ? "Admin rights granted." : "Request rejected.");
+      qc.invalidateQueries({ queryKey: ["admin_invites"] });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not update the request");
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      <form onSubmit={issue} className="rounded-md border border-border bg-card p-5">
+        <div className="font-medium">Issue an admin invite code</div>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Nobody can become an admin without a code from you. After the person submits it, you must approve the request
+          below. There is no limit on the number of admins.
+        </p>
+        <div className="mt-3 grid gap-2 sm:grid-cols-3">
+          <input
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+            placeholder="Who is this for? (name / post)"
+            className="rounded-md border border-input bg-background px-3 py-2 text-sm"
+          />
+          <input
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Their email (optional)"
+            className="rounded-md border border-input bg-background px-3 py-2 text-sm"
+          />
+          <button
+            disabled={busy}
+            className="rounded-md bg-saffron px-4 py-2 text-sm font-semibold text-saffron-foreground hover:brightness-95 disabled:opacity-50"
+          >
+            Generate code
+          </button>
+        </div>
+      </form>
+
+      <div className="rounded-md border border-border bg-card">
+        <div className="border-b border-border px-5 py-3 text-sm font-medium">Admin invite codes</div>
+        {invites.length === 0 ? (
+          <div className="p-6 text-sm text-muted-foreground">No codes issued yet.</div>
+        ) : (
+          <ul className="divide-y divide-border">
+            {invites.map((iv) => (
+              <li key={iv.id} className="flex flex-wrap items-center gap-3 px-5 py-3 text-sm">
+                <span className="font-mono font-semibold">{iv.code}</span>
+                <span className="text-muted-foreground">{iv.label ?? iv.email ?? "—"}</span>
+                <span className="rounded border border-border px-2 py-0.5 text-xs uppercase">{iv.status}</span>
+                {iv.status === "pending_approval" && (
+                  <span className="ml-auto flex gap-2">
+                    <button
+                      onClick={() => handleDecide(iv.id, true)}
+                      className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground"
+                    >
+                      Approve
+                    </button>
+                    <button
+                      onClick={() => handleDecide(iv.id, false)}
+                      className="rounded-md border border-border px-3 py-1.5 text-xs"
+                    >
+                      Reject
+                    </button>
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div className="rounded-md border border-border bg-card">
+        <div className="border-b border-border px-5 py-3 text-sm font-medium">
+          Login &amp; recovery history (saved in the database)
+        </div>
+        {log.length === 0 ? (
+          <div className="p-6 text-sm text-muted-foreground">No activity recorded yet.</div>
+        ) : (
+          <ul className="divide-y divide-border text-sm">
+            {log.map((l) => (
+              <li key={l.id} className="flex flex-wrap items-center gap-3 px-5 py-2.5">
+                <span className="font-medium">{l.action.replace(/_/g, " ")}</span>
+                <span className="text-muted-foreground">
+                  {l.identifier_type}: {l.identifier_masked}
+                </span>
+                <span className={l.succeeded ? "text-accent" : "text-destructive"}>
+                  {l.succeeded ? "success" : "failed"}
+                </span>
+                <span className="ml-auto text-xs text-muted-foreground">
+                  {new Date(l.created_at).toLocaleString()}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* ---------------- Member approvals ---------------- */
+
 
 function Approvals() {
   const qc = useQueryClient();

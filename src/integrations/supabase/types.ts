@@ -53,6 +53,57 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_invites: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          claimed_at: string | null
+          claimed_by: string | null
+          code: string
+          created_at: string
+          created_by: string
+          email: string | null
+          expires_at: string
+          id: string
+          label: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          claimed_at?: string | null
+          claimed_by?: string | null
+          code: string
+          created_at?: string
+          created_by: string
+          email?: string | null
+          expires_at?: string
+          id?: string
+          label?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          claimed_at?: string | null
+          claimed_by?: string | null
+          code?: string
+          created_at?: string
+          created_by?: string
+          email?: string | null
+          expires_at?: string
+          id?: string
+          label?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       announcements: {
         Row: {
           body: string | null
@@ -197,6 +248,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      credential_recovery_log: {
+        Row: {
+          action: string
+          created_at: string
+          detail: string | null
+          id: string
+          identifier_masked: string
+          identifier_type: string
+          succeeded: boolean
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          detail?: string | null
+          id?: string
+          identifier_masked: string
+          identifier_type: string
+          succeeded?: boolean
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          detail?: string | null
+          id?: string
+          identifier_masked?: string
+          identifier_type?: string
+          succeeded?: boolean
+          user_id?: string | null
+        }
+        Relationships: []
       }
       dams: {
         Row: {

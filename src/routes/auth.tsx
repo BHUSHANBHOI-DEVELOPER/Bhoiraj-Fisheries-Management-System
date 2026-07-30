@@ -1,13 +1,16 @@
 import { createFileRoute, useNavigate, useSearch, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth-context";
 import { SiteHeader } from "@/components/site-header";
+import { signInWithIdentifier } from "@/lib/auth.functions";
 import { toast } from "sonner";
 import { Fish, Lock, Mail, ShieldCheck, Users, ArrowLeft } from "lucide-react";
 import { z } from "zod";
+
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (s: Record<string, unknown>) => ({
@@ -27,8 +30,7 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
-const emailSchema = z.string().trim().email().max(255);
-const passwordSchema = z.string().min(6).max(72);
+const passwordSchema = z.string().min(9, "Password must be more than 8 characters").max(72);
 
 type Profile = "chairman" | "member";
 
@@ -38,15 +40,16 @@ function AuthPage() {
   const { user, loading, isAdmin } = useAuth();
   const { redirect, profile: initialProfile } = useSearch({ from: "/auth" });
   const [profile, setProfile] = useState<Profile | null>(initialProfile ?? null);
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const signIn = useServerFn(signInWithIdentifier);
 
   useEffect(() => {
     if (loading || !user) return;
     if (profile === "chairman" && !isAdmin) {
-      toast.error("This account does not have Chairman (admin) rights. Please use Member login.");
-      void supabase.auth.signOut();
+      toast.error("This account is signed in as a member — it does not have Chairman rights yet.");
+      navigate({ to: "/dashboard" });
       return;
     }
     navigate({ to: isAdmin && profile === "chairman" ? "/admin" : redirect || "/dashboard" });
@@ -55,15 +58,22 @@ function AuthPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     try {
-      emailSchema.parse(email);
       passwordSchema.parse(password);
     } catch {
-      toast.error("Please enter a valid email and a password of at least 6 characters.");
+      toast.error("Password must be more than 8 characters.");
+      return;
+    }
+    if (identifier.trim().length < 3) {
+      toast.error("Enter your mobile number, Aadhaar number or email.");
       return;
     }
     setBusy(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const tokens = await signIn({ data: { identifier: identifier.trim(), password } });
+      const { error } = await supabase.auth.setSession({
+        access_token: tokens.access_token,
+        refresh_token: tokens.refresh_token,
+      });
       if (error) throw error;
       toast.success("Welcome back!");
     } catch (err) {
@@ -79,6 +89,7 @@ function AuthPage() {
     if (res.error) toast.error(res.error.message || "Google sign-in failed");
     setBusy(false);
   }
+
 
   return (
     <div className="min-h-screen bg-wave-gradient">
@@ -159,17 +170,17 @@ function AuthPage() {
 
             <form onSubmit={handleSubmit} className="space-y-3">
               <div>
-                <label className="text-xs font-medium">{t("auth.email")}</label>
+                <label className="text-xs font-medium">Mobile number, Aadhaar number or email</label>
                 <div className="relative mt-1">
                   <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full rounded-md border border-input bg-background px-3 py-2 pl-9 text-sm focus:outline-none focus:ring-2 focus:ring-ring" required />
+                  <input type="text" value={identifier} onChange={(e) => setIdentifier(e.target.value)} placeholder="9876543210 / 123412341234 / you@example.com" className="w-full rounded-md border border-input bg-background px-3 py-2 pl-9 text-sm focus:outline-none focus:ring-2 focus:ring-ring" required />
                 </div>
               </div>
               <div>
                 <label className="text-xs font-medium">{t("auth.password")}</label>
                 <div className="relative mt-1">
                   <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full rounded-md border border-input bg-background px-3 py-2 pl-9 text-sm focus:outline-none focus:ring-2 focus:ring-ring" required minLength={6} />
+                  <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full rounded-md border border-input bg-background px-3 py-2 pl-9 text-sm focus:outline-none focus:ring-2 focus:ring-ring" required minLength={9} />
                 </div>
               </div>
               <button type="submit" disabled={busy} className="w-full rounded-md bg-primary py-2.5 text-sm font-semibold text-primary-foreground shadow-elev hover:bg-primary/90 disabled:opacity-50">
@@ -177,14 +188,20 @@ function AuthPage() {
               </button>
             </form>
 
-            {profile === "member" && (
-              <Link to="/register" className="mt-4 block text-center text-xs text-muted-foreground hover:text-foreground">
-                New member? Register here →
+            <div className="mt-4 flex items-center justify-between text-xs">
+              <Link to="/forgot-password" className="font-medium text-primary hover:underline">
+                Forgot Login ID / Password?
               </Link>
-            )}
+              {profile === "member" && (
+                <Link to="/register" className="text-muted-foreground hover:text-foreground">
+                  New member? Register →
+                </Link>
+              )}
+            </div>
           </div>
         )}
       </div>
+
     </div>
   );
 }
