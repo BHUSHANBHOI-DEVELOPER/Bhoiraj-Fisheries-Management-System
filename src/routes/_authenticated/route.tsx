@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, Link, redirect } from "@tanstack/react-router"
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { SiteHeader } from "@/components/site-header";
-import { LayoutDashboard, Users, FileText, Waves, Bot, Megaphone, ShieldAlert } from "lucide-react";
+import { LayoutDashboard, Users, FileText, Waves, Bot, Megaphone, ShieldAlert, UserCog, LogOut } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -15,7 +15,7 @@ export const Route = createFileRoute("/_authenticated")({
 });
 
 function Layout() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, signOut } = useAuth();
   const { t } = useI18n();
 
   const items = [
@@ -25,8 +25,9 @@ function Layout() {
     { to: "/chat", icon: Bot, label: t("nav.chat") },
     { to: "/notifications", icon: Megaphone, label: "Notifications" },
     { to: "/announcements", icon: Megaphone, label: "Announcements" },
-
+    { to: "/account", icon: UserCog, label: "My Login & Security" },
   ] as const;
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -55,8 +56,15 @@ function Layout() {
                 </Link>
               </>
             )}
+            <button
+              onClick={() => void signOut()}
+              className="mt-4 flex w-full items-center gap-2 rounded-md border border-border px-3 py-2 text-sm font-medium hover:bg-muted"
+            >
+              <LogOut className="h-4 w-4" /> Log out
+            </button>
           </nav>
         </aside>
+
         <main className="min-w-0 flex-1">
           <Outlet />
         </main>

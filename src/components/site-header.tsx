@@ -103,10 +103,30 @@ export function SiteHeader() {
               </Link>
             ))}
             {user ? (
-              <Link to="/dashboard" onClick={() => setOpen(false)} className="rounded-md bg-primary px-3 py-2 text-sm text-primary-foreground">
-                {t("nav.dashboard")}
-              </Link>
+              <>
+                <Link to="/dashboard" onClick={() => setOpen(false)} className="rounded-md bg-primary px-3 py-2 text-sm text-primary-foreground">
+                  {t("nav.dashboard")}
+                </Link>
+                {isAdmin && (
+                  <Link to="/admin" onClick={() => setOpen(false)} className="rounded-md bg-saffron px-3 py-2 text-sm text-saffron-foreground">
+                    {t("nav.admin")}
+                  </Link>
+                )}
+                <Link to="/account" onClick={() => setOpen(false)} className="rounded-md border border-border px-3 py-2 text-sm">
+                  My Login &amp; Security
+                </Link>
+                <button
+                  onClick={() => {
+                    setOpen(false);
+                    void signOut();
+                  }}
+                  className="rounded-md border border-border px-3 py-2 text-left text-sm font-medium"
+                >
+                  {t("nav.signout")}
+                </button>
+              </>
             ) : (
+
               <>
                 <Link to="/auth" search={{ profile: "chairman", redirect: "/admin" }} onClick={() => setOpen(false)} className="rounded-md bg-saffron px-3 py-2 text-sm text-saffron-foreground">
                   Chairman Login

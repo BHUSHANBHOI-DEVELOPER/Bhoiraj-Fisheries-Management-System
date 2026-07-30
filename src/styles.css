@@ -38,50 +38,52 @@
   --color-teal: var(--teal);
   --color-teal-foreground: var(--teal-foreground);
 
-  --gradient-hero: linear-gradient(135deg, oklch(0.28 0.09 250) 0%, oklch(0.35 0.12 220) 50%, oklch(0.55 0.14 200) 100%);
-  --gradient-wave: linear-gradient(180deg, oklch(0.98 0.02 220) 0%, oklch(0.92 0.05 220) 100%);
-  --shadow-elev: 0 8px 30px -12px oklch(0.28 0.09 250 / 0.35);
+  --gradient-hero: linear-gradient(135deg, oklch(0.30 0.08 255) 0%, oklch(0.38 0.09 245) 100%);
+  --gradient-wave: linear-gradient(180deg, oklch(0.985 0.004 250) 0%, oklch(0.96 0.008 250) 100%);
+  --shadow-elev: 0 1px 3px oklch(0.28 0.04 255 / 0.12), 0 1px 2px oklch(0.28 0.04 255 / 0.08);
 }
 
 :root {
-  --radius: 0.625rem;
+  /* Government-style: squarer corners, restrained palette, high contrast */
+  --radius: 0.25rem;
 
-  --background: oklch(0.99 0.005 240);
-  --foreground: oklch(0.18 0.04 250);
+  --background: oklch(0.985 0.003 250);
+  --foreground: oklch(0.20 0.02 255);
 
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.04 250);
+  --card-foreground: oklch(0.20 0.02 255);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.04 250);
+  --popover-foreground: oklch(0.20 0.02 255);
 
-  /* Deep navy — government/institutional */
-  --primary: oklch(0.28 0.09 250);
-  --primary-foreground: oklch(0.98 0.01 240);
+  /* Official navy blue */
+  --primary: oklch(0.34 0.09 255);
+  --primary-foreground: oklch(0.99 0.005 250);
 
-  --secondary: oklch(0.95 0.02 240);
-  --secondary-foreground: oklch(0.22 0.06 250);
+  --secondary: oklch(0.94 0.01 250);
+  --secondary-foreground: oklch(0.26 0.04 255);
 
-  --muted: oklch(0.96 0.01 240);
-  --muted-foreground: oklch(0.48 0.03 250);
+  --muted: oklch(0.955 0.005 250);
+  --muted-foreground: oklch(0.45 0.015 255);
 
-  /* Teal — water/fisheries */
-  --accent: oklch(0.72 0.12 200);
-  --accent-foreground: oklch(0.15 0.05 250);
+  /* Government green accent */
+  --accent: oklch(0.45 0.09 150);
+  --accent-foreground: oklch(0.99 0.005 250);
 
-  /* Saffron — Indian tricolor accent */
-  --saffron: oklch(0.72 0.18 55);
-  --saffron-foreground: oklch(0.15 0.05 250);
+  /* Indian tricolour saffron */
+  --saffron: oklch(0.66 0.17 52);
+  --saffron-foreground: oklch(1 0 0);
 
-  --teal: oklch(0.62 0.13 195);
-  --teal-foreground: oklch(0.98 0.01 240);
+  --teal: oklch(0.45 0.09 150);
+  --teal-foreground: oklch(0.99 0.005 250);
 
-  --destructive: oklch(0.58 0.22 27);
-  --destructive-foreground: oklch(0.98 0.01 240);
+  --destructive: oklch(0.52 0.20 27);
+  --destructive-foreground: oklch(0.99 0.005 250);
 
-  --border: oklch(0.9 0.02 240);
-  --input: oklch(0.92 0.02 240);
-  --ring: oklch(0.55 0.14 220);
+  --border: oklch(0.86 0.01 250);
+  --input: oklch(0.84 0.012 250);
+  --ring: oklch(0.42 0.10 255);
 }
+
 
 .dark {
   --background: oklch(0.13 0.03 250);

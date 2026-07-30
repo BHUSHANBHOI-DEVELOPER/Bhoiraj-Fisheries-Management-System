@@ -10,9 +10,11 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SchemesRouteImport } from './routes/schemes'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RegisteredMembersRouteImport } from './routes/registered-members'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LakesAndDamsRouteImport } from './routes/lakes-and-dams'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AchievementsRouteImport } from './routes/achievements'
@@ -28,10 +30,16 @@ import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/c
 import { Route as AuthenticatedAuditsRouteImport } from './routes/_authenticated/audits'
 import { Route as AuthenticatedAnnouncementsRouteImport } from './routes/_authenticated/announcements'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 
 const SchemesRoute = SchemesRouteImport.update({
   id: '/schemes',
   path: '/schemes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RegisteredMembersRoute = RegisteredMembersRouteImport.update({
@@ -47,6 +55,11 @@ const RegisterRoute = RegisterRouteImport.update({
 const LakesAndDamsRoute = LakesAndDamsRouteImport.update({
   id: '/lakes-and-dams',
   path: '/lakes-and-dams',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
@@ -125,6 +138,11 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -132,10 +150,13 @@ export interface FileRoutesByFullPath {
   '/achievements': typeof AchievementsRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/lakes-and-dams': typeof LakesAndDamsRoute
   '/register': typeof RegisterRoute
   '/registered-members': typeof RegisteredMembersRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/schemes': typeof SchemesRoute
+  '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/announcements': typeof AuthenticatedAnnouncementsRoute
   '/audits': typeof AuthenticatedAuditsRoute
@@ -152,10 +173,13 @@ export interface FileRoutesByTo {
   '/achievements': typeof AchievementsRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/lakes-and-dams': typeof LakesAndDamsRoute
   '/register': typeof RegisterRoute
   '/registered-members': typeof RegisteredMembersRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/schemes': typeof SchemesRoute
+  '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/announcements': typeof AuthenticatedAnnouncementsRoute
   '/audits': typeof AuthenticatedAuditsRoute
@@ -174,10 +198,13 @@ export interface FileRoutesById {
   '/achievements': typeof AchievementsRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/lakes-and-dams': typeof LakesAndDamsRoute
   '/register': typeof RegisterRoute
   '/registered-members': typeof RegisteredMembersRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/schemes': typeof SchemesRoute
+  '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/announcements': typeof AuthenticatedAnnouncementsRoute
   '/_authenticated/audits': typeof AuthenticatedAuditsRoute
@@ -196,10 +223,13 @@ export interface FileRouteTypes {
     | '/achievements'
     | '/auth'
     | '/contact'
+    | '/forgot-password'
     | '/lakes-and-dams'
     | '/register'
     | '/registered-members'
+    | '/reset-password'
     | '/schemes'
+    | '/account'
     | '/admin'
     | '/announcements'
     | '/audits'
@@ -216,10 +246,13 @@ export interface FileRouteTypes {
     | '/achievements'
     | '/auth'
     | '/contact'
+    | '/forgot-password'
     | '/lakes-and-dams'
     | '/register'
     | '/registered-members'
+    | '/reset-password'
     | '/schemes'
+    | '/account'
     | '/admin'
     | '/announcements'
     | '/audits'
@@ -237,10 +270,13 @@ export interface FileRouteTypes {
     | '/achievements'
     | '/auth'
     | '/contact'
+    | '/forgot-password'
     | '/lakes-and-dams'
     | '/register'
     | '/registered-members'
+    | '/reset-password'
     | '/schemes'
+    | '/_authenticated/account'
     | '/_authenticated/admin'
     | '/_authenticated/announcements'
     | '/_authenticated/audits'
@@ -259,9 +295,11 @@ export interface RootRouteChildren {
   AchievementsRoute: typeof AchievementsRoute
   AuthRoute: typeof AuthRoute
   ContactRoute: typeof ContactRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
   LakesAndDamsRoute: typeof LakesAndDamsRoute
   RegisterRoute: typeof RegisterRoute
   RegisteredMembersRoute: typeof RegisteredMembersRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SchemesRoute: typeof SchemesRoute
   ApiChatRoute: typeof ApiChatRoute
 }
@@ -273,6 +311,13 @@ declare module '@tanstack/react-router' {
       path: '/schemes'
       fullPath: '/schemes'
       preLoaderRoute: typeof SchemesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/registered-members': {
@@ -294,6 +339,13 @@ declare module '@tanstack/react-router' {
       path: '/lakes-and-dams'
       fullPath: '/lakes-and-dams'
       preLoaderRoute: typeof LakesAndDamsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -401,10 +453,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/account': {
+      id: '/_authenticated/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AuthenticatedAccountRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedAnnouncementsRoute: typeof AuthenticatedAnnouncementsRoute
   AuthenticatedAuditsRoute: typeof AuthenticatedAuditsRoute
@@ -416,6 +476,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAccountRoute: AuthenticatedAccountRoute,
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedAnnouncementsRoute: AuthenticatedAnnouncementsRoute,
   AuthenticatedAuditsRoute: AuthenticatedAuditsRoute,
@@ -436,9 +497,11 @@ const rootRouteChildren: RootRouteChildren = {
   AchievementsRoute: AchievementsRoute,
   AuthRoute: AuthRoute,
   ContactRoute: ContactRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
   LakesAndDamsRoute: LakesAndDamsRoute,
   RegisterRoute: RegisterRoute,
   RegisteredMembersRoute: RegisteredMembersRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SchemesRoute: SchemesRoute,
   ApiChatRoute: ApiChatRoute,
 }
