@@ -53,6 +53,39 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_activity_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          actor_label: string | null
+          created_at: string
+          detail: string | null
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          actor_label?: string | null
+          created_at?: string
+          detail?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          actor_label?: string | null
+          created_at?: string
+          detail?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
       admin_invites: {
         Row: {
           approved_at: string | null
@@ -101,6 +134,60 @@ export type Database = {
           role?: Database["public"]["Enums"]["app_role"]
           status?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      admin_signup_requests: {
+        Row: {
+          alt_phone: string | null
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          phone: string | null
+          reason: string | null
+          requested_role: Database["public"]["Enums"]["app_role"]
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          sponsor_email: string
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          alt_phone?: string | null
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          phone?: string | null
+          reason?: string | null
+          requested_role?: Database["public"]["Enums"]["app_role"]
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          sponsor_email: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          alt_phone?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          phone?: string | null
+          reason?: string | null
+          requested_role?: Database["public"]["Enums"]["app_role"]
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          sponsor_email?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -399,11 +486,48 @@ export type Database = {
           },
         ]
       }
+      login_otps: {
+        Row: {
+          attempts: number
+          code: string
+          consumed_at: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          purpose: string
+          user_id: string | null
+        }
+        Insert: {
+          attempts?: number
+          code: string
+          consumed_at?: string | null
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          purpose?: string
+          user_id?: string | null
+        }
+        Update: {
+          attempts?: number
+          code?: string
+          consumed_at?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          purpose?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       members: {
         Row: {
           aadhaar_last4: string | null
           aadhaar_number: string | null
           address: string | null
+          alt_phone: string | null
           approval_status: string
           approved_at: string | null
           approved_by: string | null
@@ -437,6 +561,7 @@ export type Database = {
           aadhaar_last4?: string | null
           aadhaar_number?: string | null
           address?: string | null
+          alt_phone?: string | null
           approval_status?: string
           approved_at?: string | null
           approved_by?: string | null
@@ -470,6 +595,7 @@ export type Database = {
           aadhaar_last4?: string | null
           aadhaar_number?: string | null
           address?: string | null
+          alt_phone?: string | null
           approval_status?: string
           approved_at?: string | null
           approved_by?: string | null
@@ -505,6 +631,7 @@ export type Database = {
         Row: {
           aadhaar_number: string
           address: string | null
+          alt_phone: string | null
           created_at: string
           district: string | null
           dob: string
@@ -528,6 +655,7 @@ export type Database = {
         Insert: {
           aadhaar_number: string
           address?: string | null
+          alt_phone?: string | null
           created_at?: string
           district?: string | null
           dob: string
@@ -551,6 +679,7 @@ export type Database = {
         Update: {
           aadhaar_number?: string
           address?: string | null
+          alt_phone?: string | null
           created_at?: string
           district?: string | null
           dob?: string
@@ -615,6 +744,7 @@ export type Database = {
       profiles: {
         Row: {
           address: string | null
+          alt_phone: string | null
           avatar_url: string | null
           created_at: string
           district: string | null
@@ -630,6 +760,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          alt_phone?: string | null
           avatar_url?: string | null
           created_at?: string
           district?: string | null
@@ -645,6 +776,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          alt_phone?: string | null
           avatar_url?: string | null
           created_at?: string
           district?: string | null
@@ -771,6 +903,33 @@ export type Database = {
         }
         Relationships: []
       }
+      site_links: {
+        Row: {
+          id: string
+          is_active: boolean
+          platform: string
+          updated_at: string
+          updated_by: string | null
+          url: string
+        }
+        Insert: {
+          id?: string
+          is_active?: boolean
+          platform: string
+          updated_at?: string
+          updated_by?: string | null
+          url: string
+        }
+        Update: {
+          id?: string
+          is_active?: boolean
+          platform?: string
+          updated_at?: string
+          updated_by?: string | null
+          url?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -789,6 +948,24 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      visitor_counter: {
+        Row: {
+          id: number
+          total: number
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          total?: number
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          total?: number
+          updated_at?: string
         }
         Relationships: []
       }
@@ -829,6 +1006,7 @@ export type Database = {
       }
     }
     Functions: {
+      bump_visitor_counter: { Args: never; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
