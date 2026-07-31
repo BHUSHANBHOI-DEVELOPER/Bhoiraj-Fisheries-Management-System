@@ -1,100 +1,30 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import {
+  logRecovery,
+  mask,
+  maskIdentifier,
+  publicAuthClient,
+  resolveEmail,
+  rolesFor,
+} from "@/lib/auth.server";
 
 const identifierSchema = z.object({
   identifier: z.string().trim().min(3).max(255),
 });
 
-function classify(raw: string) {
-  const v = raw.trim();
-  if (/^\d{12}$/.test(v.replace(/\s/g, ""))) return { type: "aadhaar" as const, value: v.replace(/\s/g, "") };
-  const digits = v.replace(/[^0-9]/g, "");
-  if (/^\d{10}$/.test(digits) && !v.includes("@")) return { type: "phone" as const, value: digits };
-  if (digits.length === 12 && digits.startsWith("91") && !v.includes("@")) {
-    return { type: "phone" as const, value: digits.slice(2) };
-  }
-  return { type: "email" as const, value: v.toLowerCase() };
-}
+const profileSchema = z.enum(["chairman", "admin", "member"]);
 
-function mask(email: string) {
-  const [local, domain] = email.split("@");
-  if (!domain) return "****";
-  const head = local.slice(0, 2);
-  return `${head}${"*".repeat(Math.max(local.length - 2, 2))}@${domain}`;
-}
-
-/** Resolves any supported identifier (mobile / Aadhaar / email) to the account email. */
-async function resolveEmail(raw: string) {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { type, value } = classify(raw);
-
-  if (type === "email") {
-    return { type, email: value };
-  }
-
-  const column = type === "phone" ? "phone" : "aadhaar_number";
-
-  const { data: member } = await supabaseAdmin
-    .from("members")
-    .select("email,user_id")
-    .eq(column, value)
-    .maybeSingle();
-
-  let email = member?.email ?? null;
-  let userId = member?.user_id ?? null;
-
-  if (!email && type === "phone") {
-    const { data: profile } = await supabaseAdmin
-      .from("profiles")
-      .select("email,id")
-      .eq("phone", value)
-      .maybeSingle();
-    email = profile?.email ?? null;
-    userId = userId ?? profile?.id ?? null;
-  }
-
-  if (!email && type === "aadhaar") {
-    const { data: app } = await supabaseAdmin
-      .from("membership_applications")
-      .select("email,user_id")
-      .eq("aadhaar_number", value)
-      .maybeSingle();
-    email = app?.email ?? null;
-    userId = userId ?? app?.user_id ?? null;
-  }
-
-  if (!email && userId) {
-    const { data } = await supabaseAdmin.auth.admin.getUserById(userId);
-    email = data.user?.email ?? null;
-  }
-
-  return { type, email: email?.toLowerCase() ?? null };
-}
-
-async function logRecovery(entry: {
-  identifier_type: string;
-  identifier_masked: string;
-  action: string;
-  succeeded: boolean;
-  detail?: string;
-}) {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  await supabaseAdmin.from("credential_recovery_log").insert(entry);
-}
-
-function maskIdentifier(type: string, raw: string) {
-  const v = raw.trim();
-  if (type === "email") return mask(v);
-  return `${"*".repeat(Math.max(v.length - 4, 0))}${v.slice(-4)}`;
-}
-
-/** Signs in using mobile number, Aadhaar number or email + password. Returns a session. */
+/**
+ * Signs in a MEMBER using mobile / alternate mobile / Aadhaar / email + password.
+ * Chairman and Admin profiles must use `verifyCredentialsForOtp` instead — they
+ * only receive a session after their one-time code is matched.
+ */
 export const signInWithIdentifier = createServerFn({ method: "POST" })
   .inputValidator((input: { identifier: string; password: string }) =>
-    identifierSchema.extend({ password: z.string().min(8).max(72) }).parse(input),
+    identifierSchema.extend({ password: z.string().min(1).max(72) }).parse(input),
   )
   .handler(async ({ data }) => {
-    const { createClient } = await import("@supabase/supabase-js");
     const { type, email } = await resolveEmail(data.identifier);
     const masked = maskIdentifier(type, data.identifier);
 
@@ -106,22 +36,10 @@ export const signInWithIdentifier = createServerFn({ method: "POST" })
         succeeded: false,
         detail: "No account found for this identifier",
       });
-      throw new Error("No account found for that mobile number / Aadhaar / email.");
+      throw new Error("No account found for that mobile number / Aadhaar number / email.");
     }
 
-    const key = process.env.SUPABASE_PUBLISHABLE_KEY!;
-    const client = createClient(process.env.SUPABASE_URL!, key, {
-      auth: { persistSession: false, autoRefreshToken: false },
-      global: {
-        fetch: (input, init) => {
-          const h = new Headers(init?.headers);
-          if (key.startsWith("sb_") && h.get("Authorization") === `Bearer ${key}`) h.delete("Authorization");
-          h.set("apikey", key);
-          return fetch(input, { ...init, headers: h });
-        },
-      },
-    });
-
+    const client = publicAuthClient();
     const { data: result, error } = await client.auth.signInWithPassword({
       email,
       password: data.password,
@@ -133,16 +51,111 @@ export const signInWithIdentifier = createServerFn({ method: "POST" })
       action: "login",
       succeeded: !error,
       detail: error?.message,
+      user_id: result?.user?.id ?? null,
     });
 
-    if (error || !result.session) {
-      throw new Error(error?.message ?? "Invalid credentials");
-    }
+    if (error || !result.session) throw new Error(error?.message ?? "Invalid credentials");
 
     return {
       access_token: result.session.access_token,
       refresh_token: result.session.refresh_token,
     };
+  });
+
+/**
+ * Step 1 of the Chairman / Admin login. Checks the password AND the role, then
+ * returns only the account email so a one-time code can be emailed. No session
+ * is issued here, so admin rights cannot be reached without matching the code.
+ */
+export const verifyCredentialsForOtp = createServerFn({ method: "POST" })
+  .inputValidator((input: { identifier: string; password: string; profile: string }) =>
+    identifierSchema
+      .extend({ password: z.string().min(1).max(72), profile: profileSchema })
+      .parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { type, email } = await resolveEmail(data.identifier);
+    const masked = maskIdentifier(type, data.identifier);
+
+    if (!email) {
+      await logRecovery({
+        identifier_type: type,
+        identifier_masked: masked,
+        action: `login_${data.profile}`,
+        succeeded: false,
+        detail: "No account found",
+      });
+      throw new Error("No account found for that mobile number / Aadhaar number / email.");
+    }
+
+    const client = publicAuthClient();
+    const { data: result, error } = await client.auth.signInWithPassword({
+      email,
+      password: data.password,
+    });
+
+    if (error || !result.user) {
+      await logRecovery({
+        identifier_type: type,
+        identifier_masked: masked,
+        action: `login_${data.profile}`,
+        succeeded: false,
+        detail: error?.message ?? "Invalid credentials",
+      });
+      throw new Error("Incorrect password. Please try again.");
+    }
+
+    const roles = await rolesFor(result.user.id);
+    // The session created for this check is discarded immediately.
+    await client.auth.signOut();
+
+    const isAdmin = roles.includes("admin") || roles.includes("super_admin");
+    if (!isAdmin) {
+      await logRecovery({
+        identifier_type: type,
+        identifier_masked: masked,
+        action: `login_${data.profile}`,
+        succeeded: false,
+        detail: "Account does not hold Chairman/Admin rights",
+        user_id: result.user.id,
+      });
+      throw new Error(
+        "These credentials are correct, but this account does not hold Chairman/Admin rights. Please use Member Login.",
+      );
+    }
+
+    await logRecovery({
+      identifier_type: type,
+      identifier_masked: masked,
+      action: `login_${data.profile}_password_ok`,
+      succeeded: true,
+      user_id: result.user.id,
+    });
+
+    return { email, maskedEmail: mask(email), isSuperAdmin: roles.includes("super_admin") };
+  });
+
+/** Records the outcome of a one-time code check for the audit trail. */
+export const logOtpOutcome = createServerFn({ method: "POST" })
+  .inputValidator((input: { email: string; profile: string; succeeded: boolean; detail?: string }) =>
+    z
+      .object({
+        email: z.string().email().max(255),
+        profile: profileSchema,
+        succeeded: z.boolean(),
+        detail: z.string().max(300).optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }) => {
+    await logRecovery({
+      identifier_type: "email",
+      identifier_masked: mask(data.email),
+      action: `otp_${data.profile}`,
+      succeeded: data.succeeded,
+      detail: data.detail,
+    });
+    return { ok: true };
   });
 
 /** "Forgot Login ID" — returns the masked email tied to a mobile/Aadhaar number. */
@@ -167,7 +180,6 @@ export const requestPasswordReset = createServerFn({ method: "POST" })
     identifierSchema.extend({ redirectTo: z.string().url().max(500) }).parse(input),
   )
   .handler(async ({ data }) => {
-    const { createClient } = await import("@supabase/supabase-js");
     const { type, email } = await resolveEmail(data.identifier);
     const masked = maskIdentifier(type, data.identifier);
 
@@ -182,10 +194,7 @@ export const requestPasswordReset = createServerFn({ method: "POST" })
       return { sent: false as const };
     }
 
-    const key = process.env.SUPABASE_PUBLISHABLE_KEY!;
-    const client = createClient(process.env.SUPABASE_URL!, key, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
+    const client = publicAuthClient();
     const { error } = await client.auth.resetPasswordForEmail(email, { redirectTo: data.redirectTo });
 
     await logRecovery({
