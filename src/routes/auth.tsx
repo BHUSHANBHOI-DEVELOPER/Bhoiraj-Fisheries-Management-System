@@ -110,7 +110,7 @@ function AuthPage() {
         await sendCode(res.email);
         setOtpEmail(res.email);
         setMaskedEmail(res.maskedEmail);
-        toast.success(`Password verified. A 6-digit one-time code was emailed to ${res.maskedEmail}.`);
+        toast.success(`Password verified. A secure sign-in email was sent to ${res.maskedEmail}.`);
       } else {
         const tokens = await signIn({ data: { identifier: identifier.trim(), password } });
         const { error } = await supabase.auth.setSession({
@@ -245,7 +245,7 @@ function AuthPage() {
               <h1 className="mt-4 font-display text-2xl font-bold">{meta?.title}</h1>
               <p className="mt-1 text-sm text-muted-foreground">
                 {otpEmail
-                  ? `Step 2 of 2 — enter the one-time code sent to ${maskedEmail}`
+                  ? `Step 2 of 2 — verify the email we just sent to ${maskedEmail}`
                   : needsOtp
                     ? "Step 1 of 2 — password, then a one-time code by email"
                     : t("auth.title")}
@@ -291,7 +291,9 @@ function AuthPage() {
                   </button>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Access is granted only after this code is matched. The code expires shortly and every attempt is
+                  Access is granted only after this email is verified. Open the email and either tap the secure sign-in
+                  link or type the 6-digit code if your email shows one. Every attempt is
+
                   recorded in the activity log.
                 </p>
               </form>
