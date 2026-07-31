@@ -70,6 +70,10 @@ function AuthPage() {
   const needsOtp = profile === "chairman" || profile === "admin";
 
   useEffect(() => {
+    if (initialProfile) setProfile(initialProfile);
+  }, [initialProfile]);
+
+  useEffect(() => {
     if (cooldown <= 0) return;
     const id = setTimeout(() => setCooldown((c) => c - 1), 1000);
     return () => clearTimeout(id);
