@@ -208,3 +208,84 @@ export const requestPasswordReset = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { sent: true as const, maskedEmail: mask(email) };
   });
+
+/**
+ * Direct password reset — no email link involved.
+ * The account is found by mobile number / Aadhaar number / email, a second
+ * registered detail is checked, and the new password is written straight into
+ * the database so the member can sign in with it immediately.
+ */
+export const setNewPasswordDirect = createServerFn({ method: "POST" })
+  .inputValidator((input: { identifier: string; secret: string; newPassword: string }) =>
+    identifierSchema
+      .extend({
+        secret: z.string().trim().min(4).max(20),
+        newPassword: z.string().min(9).max(72),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { resolveAccount, verifySecondFactor, recordPasswordChange } = await import("@/lib/auth.server");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { type, email, userId } = await resolveAccount(data.identifier);
+    const masked = maskIdentifier(type, data.identifier);
+
+    if (!email || !userId) {
+      await logRecovery({
+        identifier_type: type,
+        identifier_masked: masked,
+        action: "password_set_direct",
+        succeeded: false,
+        detail: "No account found",
+      });
+      throw new Error(
+        "We could not find an account for that mobile number / Aadhaar number / email. Please check the value, or ask the Chairman to confirm your registration.",
+      );
+    }
+
+    const ok = await verifySecondFactor(userId, email, data.secret);
+    if (!ok) {
+      await logRecovery({
+        identifier_type: type,
+        identifier_masked: masked,
+        action: "password_set_direct",
+        succeeded: false,
+        detail: "Second factor did not match",
+        user_id: userId,
+      });
+      throw new Error(
+        "That verification value does not match our records. Enter your registered 10-digit mobile number or the last 4 digits of your Aadhaar number.",
+      );
+    }
+
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, { password: data.newPassword });
+    if (error) {
+      await logRecovery({
+        identifier_type: type,
+        identifier_masked: masked,
+        action: "password_set_direct",
+        succeeded: false,
+        detail: error.message,
+        user_id: userId,
+      });
+      throw new Error(error.message);
+    }
+
+    await recordPasswordChange({
+      user_id: userId,
+      user_email: email,
+      method: "self_reset_direct",
+      note: `Reset using ${type} identifier`,
+    });
+
+    await logRecovery({
+      identifier_type: type,
+      identifier_masked: masked,
+      action: "password_set_direct",
+      succeeded: true,
+      user_id: userId,
+    });
+
+    return { ok: true as const, maskedEmail: mask(email) };
+  });
