@@ -215,13 +215,40 @@ function AuthPage() {
                 tone="primary"
               />
             </div>
-            <div className="mt-6 rounded-xl border border-border bg-muted/40 p-4 text-center text-sm">
-              New to the society?{" "}
-              <Link to="/register" className="font-semibold text-primary hover:underline">
-                Register as a new member
-              </Link>{" "}
-              — the Chairman approves every application.
+            <div className="mt-6 space-y-3 rounded-xl border border-border bg-muted/40 p-4 text-center text-sm">
+              <div>
+                Registration is required before login — for Chairman, Admin and Members alike.
+              </div>
+              <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
+                <Link
+                  to="/register"
+                  className="rounded-md bg-saffron px-4 py-2 text-xs font-bold text-saffron-foreground hover:brightness-95"
+                >
+                  Register (Member)
+                </Link>
+                <Link
+                  to="/register"
+                  className="rounded-md bg-primary px-4 py-2 text-xs font-bold text-primary-foreground hover:bg-primary/90"
+                >
+                  Register (Chairman)
+                </Link>
+                <Link
+                  to="/register"
+                  className="rounded-md bg-teal px-4 py-2 text-xs font-bold text-primary-foreground hover:brightness-95"
+                >
+                  Register (Admin)
+                </Link>
+              </div>
+              <button
+                type="button"
+                onClick={handleGoogle}
+                disabled={busy}
+                className="mx-auto flex w-full items-center justify-center gap-2 rounded-md border border-border bg-background px-4 py-2.5 text-sm font-medium hover:bg-muted disabled:opacity-50 sm:w-auto"
+              >
+                <Mail className="h-4 w-4" /> Continue with Google
+              </button>
             </div>
+
             <Link to="/" className="mt-6 block text-center text-xs text-muted-foreground hover:text-foreground">
               ← Back to home
             </Link>
