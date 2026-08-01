@@ -486,6 +486,51 @@ export type Database = {
           },
         ]
       }
+      grievances: {
+        Row: {
+          admin_reply: string | null
+          category: string
+          created_at: string
+          email: string | null
+          full_name: string
+          handled_by: string | null
+          id: string
+          message: string
+          phone: string | null
+          status: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          admin_reply?: string | null
+          category?: string
+          created_at?: string
+          email?: string | null
+          full_name: string
+          handled_by?: string | null
+          id?: string
+          message: string
+          phone?: string | null
+          status?: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          admin_reply?: string | null
+          category?: string
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          handled_by?: string | null
+          id?: string
+          message?: string
+          phone?: string | null
+          status?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       login_otps: {
         Row: {
           attempts: number
@@ -738,6 +783,39 @@ export type Database = {
           read_at?: string | null
           recipient_id?: string | null
           title?: string
+        }
+        Relationships: []
+      }
+      password_history: {
+        Row: {
+          changed_by: string | null
+          changed_by_label: string | null
+          created_at: string
+          id: string
+          method: string
+          note: string | null
+          user_email: string | null
+          user_id: string
+        }
+        Insert: {
+          changed_by?: string | null
+          changed_by_label?: string | null
+          created_at?: string
+          id?: string
+          method?: string
+          note?: string | null
+          user_email?: string | null
+          user_id: string
+        }
+        Update: {
+          changed_by?: string | null
+          changed_by_label?: string | null
+          created_at?: string
+          id?: string
+          method?: string
+          note?: string | null
+          user_email?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -1015,6 +1093,7 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      society_snapshot: { Args: never; Returns: Json }
     }
     Enums: {
       app_role: "super_admin" | "admin" | "member"
