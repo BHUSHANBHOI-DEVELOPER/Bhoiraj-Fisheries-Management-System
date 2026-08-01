@@ -228,14 +228,12 @@ function AuthPage() {
                 </Link>
                 <Link
                   to="/register"
-                  search={{ role: "chairman" }}
                   className="rounded-md bg-primary px-4 py-2 text-xs font-bold text-primary-foreground hover:bg-primary/90"
                 >
                   Register (Chairman)
                 </Link>
                 <Link
                   to="/register"
-                  search={{ role: "admin" }}
                   className="rounded-md bg-teal px-4 py-2 text-xs font-bold text-primary-foreground hover:brightness-95"
                 >
                   Register (Admin)
