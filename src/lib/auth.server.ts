@@ -134,3 +134,78 @@ export async function rolesFor(userId: string) {
   const { data } = await supabaseAdmin.from("user_roles").select("role").eq("user_id", userId);
   return (data ?? []).map((r) => r.role as string);
 }
+
+/** Resolves an identifier all the way to an auth user id (needed for direct password changes). */
+export async function resolveAccount(raw: string) {
+  const base = await resolveEmail(raw);
+  let userId = base.userId;
+  if (!userId && base.email) {
+    const { data } = await supabaseAdmin.from("profiles").select("id").eq("email", base.email).maybeSingle();
+    userId = data?.id ?? null;
+  }
+  if (!userId && base.email) {
+    const { data } = await supabaseAdmin.from("members").select("user_id").eq("email", base.email).maybeSingle();
+    userId = data?.user_id ?? null;
+  }
+  return { ...base, userId };
+}
+
+/**
+ * Confirms that the person asking for a password change also knows a second
+ * registered detail — either their 10-digit mobile number or the last 4 digits
+ * of their Aadhaar number.
+ */
+export async function verifySecondFactor(userId: string | null, email: string | null, secret: string) {
+  const digits = secret.replace(/\D/g, "");
+  if (digits.length !== 4 && digits.length !== 10) return false;
+
+  const orFilter: string[] = [];
+  if (userId) orFilter.push(`user_id.eq.${userId}`);
+  if (email) orFilter.push(`email.eq.${email}`);
+  if (orFilter.length === 0) return false;
+
+  const { data: members } = await supabaseAdmin
+    .from("members")
+    .select("phone,alt_phone,aadhaar_number,aadhaar_last4")
+    .or(orFilter.join(","));
+
+  const { data: apps } = await supabaseAdmin
+    .from("membership_applications")
+    .select("phone,alt_phone,aadhaar_number")
+    .or(orFilter.join(","));
+
+  const { data: profs } = email
+    ? await supabaseAdmin.from("profiles").select("phone,alt_phone").eq("email", email)
+    : { data: [] as { phone: string | null; alt_phone: string | null }[] };
+
+  const candidates: string[] = [];
+  for (const m of members ?? []) {
+    if (m.phone) candidates.push(m.phone);
+    if (m.alt_phone) candidates.push(m.alt_phone);
+    if (m.aadhaar_number) candidates.push(m.aadhaar_number.slice(-4));
+    if (m.aadhaar_last4) candidates.push(m.aadhaar_last4);
+  }
+  for (const a of apps ?? []) {
+    if (a.phone) candidates.push(a.phone);
+    if (a.alt_phone) candidates.push(a.alt_phone);
+    if (a.aadhaar_number) candidates.push(a.aadhaar_number.slice(-4));
+  }
+  for (const p of profs ?? []) {
+    if (p.phone) candidates.push(p.phone);
+    if (p.alt_phone) candidates.push(p.alt_phone);
+  }
+
+  return candidates.some((c) => c.replace(/\D/g, "") === digits);
+}
+
+/** Records a password change so the Chairman can audit it later. */
+export async function recordPasswordChange(entry: {
+  user_id: string;
+  user_email?: string | null;
+  changed_by?: string | null;
+  changed_by_label?: string | null;
+  method: string;
+  note?: string | null;
+}) {
+  await supabaseAdmin.from("password_history").insert(entry);
+}
