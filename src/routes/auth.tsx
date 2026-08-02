@@ -96,15 +96,6 @@ function AuthPage() {
     setPassword("");
   }
 
-  async function sendCode(email: string) {
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { shouldCreateUser: false },
-    });
-    if (error) throw error;
-    setCooldown(45);
-  }
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (identifier.trim().length < 3) return toast.error("Enter your mobile number, Aadhaar number or email.");
@@ -112,12 +103,17 @@ function AuthPage() {
     setBusy(true);
     try {
       if (needsOtp) {
-        const res = await verify({ data: { identifier: identifier.trim(), password, profile: profile! } });
-        await sendCode(res.email);
+        const res = await startLogin({ data: { identifier: identifier.trim(), password, profile: profile! } });
         setOtpEmail(res.email);
         setMaskedEmail(res.maskedEmail);
-        toast.success(`Password verified. A secure sign-in email was sent to ${res.maskedEmail}.`);
+        setCooldown(45);
+        if (res.smsSent) {
+          toast.success(`Password verified. A 6-digit code was sent by SMS to ${res.maskedPhone}.`);
+        } else {
+          toast.warning(`Password verified, but the code could not be texted (${res.smsReason}). Ask the Admin for the code.`);
+        }
       } else {
+        setActiveProfile("member");
         const tokens = await signIn({ data: { identifier: identifier.trim(), password } });
         const { error } = await supabase.auth.setSession({
           access_token: tokens.access_token,
@@ -136,18 +132,18 @@ function AuthPage() {
   async function handleVerifyCode(e: React.FormEvent) {
     e.preventDefault();
     if (!otpEmail) return;
-    if (!/^\d{6}$/.test(code.trim())) return toast.error("Enter the 6-digit code from your email.");
+    if (!/^\d{6}$/.test(code.trim())) return toast.error("Enter the 6-digit code sent to your mobile.");
     setBusy(true);
     try {
-      const { error } = await supabase.auth.verifyOtp({
-        email: otpEmail,
-        token: code.trim(),
-        type: "email",
+      const tokens = await completeLogin({
+        data: { identifier: identifier.trim(), password, profile: profile!, code: code.trim() },
       });
-      await logOtp({
-        data: { email: otpEmail, profile: profile!, succeeded: !error, detail: error?.message },
+      setActiveProfile(profile!);
+      const { error } = await supabase.auth.setSession({
+        access_token: tokens.access_token,
+        refresh_token: tokens.refresh_token,
       });
-      if (error) throw new Error("That code is not correct or has expired. Please request a new one.");
+      if (error) throw error;
       toast.success(profile === "chairman" ? "Chairman access granted." : "Admin access granted.");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not verify the code");
@@ -160,8 +156,10 @@ function AuthPage() {
     if (!otpEmail || cooldown > 0) return;
     setBusy(true);
     try {
-      await sendCode(otpEmail);
-      toast.success("A new code has been emailed to you.");
+      const res = await resendOtp({ data: { email: otpEmail, profile: profile! } });
+      setCooldown(45);
+      if (res.smsSent) toast.success("A new code has been texted to you.");
+      else toast.warning(`Code regenerated, but SMS failed (${res.smsReason}).`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not resend the code");
     } finally {
