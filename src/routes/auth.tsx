@@ -169,6 +169,7 @@ function AuthPage() {
 
   async function handleGoogle() {
     setBusy(true);
+    setActiveProfile(profile ?? "member");
     const res = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
     if (res.error) toast.error(res.error.message || "Google sign-in failed");
     setBusy(false);
@@ -276,9 +277,9 @@ function AuthPage() {
               <h1 className="mt-4 font-display text-2xl font-bold">{meta?.title}</h1>
               <p className="mt-1 text-sm text-muted-foreground">
                 {otpEmail
-                  ? `Step 2 of 2 — verify the email we just sent to ${maskedEmail}`
+                  ? `Step 2 of 2 — enter the 6-digit code we texted you`
                   : needsOtp
-                    ? "Step 1 of 2 — password, then a one-time code by email"
+                    ? "Step 1 of 2 — password, then a 6-digit code by SMS"
                     : t("auth.title")}
               </p>
             </div>
@@ -286,7 +287,7 @@ function AuthPage() {
             {otpEmail ? (
               <form onSubmit={handleVerifyCode} className="space-y-4">
                 <div>
-                  <label className="text-xs font-medium">6-digit one-time code</label>
+                  <label className="text-xs font-medium">6-digit code sent to your mobile</label>
                   <div className="relative mt-1">
                     <KeyRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <input
@@ -322,9 +323,7 @@ function AuthPage() {
                   </button>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Access is granted only after this email is verified. Open the email and either tap the secure sign-in
-                  link or type the 6-digit code if your email shows one. Every attempt is
-
+                  Access is granted only after this code matches. The code is valid for 10 minutes, and every attempt is
                   recorded in the activity log.
                 </p>
               </form>
