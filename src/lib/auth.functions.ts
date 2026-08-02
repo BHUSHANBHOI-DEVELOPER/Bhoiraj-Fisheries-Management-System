@@ -157,7 +157,7 @@ export const completeRoleLogin = createServerFn({ method: "POST" })
 
     const check = await consumeOtp(email, action, data.code);
     if (!check.ok) {
-      await logRecovery({ identifier_type: type, identifier_masked: masked, action: `otp_${profile}`, succeeded: false, detail: check.reason });
+      await logRecovery({ identifier_type: type, identifier_masked: masked, action: `otp_${profile}`, succeeded: false, detail: check.reason ?? undefined });
       throw new Error(check.reason ?? "That code is not correct.");
     }
 
