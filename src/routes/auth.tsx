@@ -64,9 +64,10 @@ function AuthPage() {
   const [code, setCode] = useState("");
   const [cooldown, setCooldown] = useState(0);
 
-  const verify = useServerFn(verifyCredentialsForOtp);
+  const startLogin = useServerFn(startRoleLogin);
+  const completeLogin = useServerFn(completeRoleLogin);
+  const resendOtp = useServerFn(resendRoleOtp);
   const signIn = useServerFn(signInWithIdentifier);
-  const logOtp = useServerFn(logOtpOutcome);
 
   const needsOtp = profile === "chairman" || profile === "admin";
 
