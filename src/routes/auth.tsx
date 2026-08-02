@@ -407,7 +407,7 @@ function AuthPage() {
                 {needsOtp && (
                   <p className="mt-3 rounded-md border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
                     {profile === "chairman" ? "Chairman" : "Admin"} rights open only through this door, and only after the
-                    emailed one-time code is matched.
+                    6-digit code texted to the registered mobile number is matched.
                   </p>
                 )}
 
