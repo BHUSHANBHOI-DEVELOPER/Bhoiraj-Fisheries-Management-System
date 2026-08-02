@@ -209,3 +209,55 @@ export async function recordPasswordChange(entry: {
 }) {
   await supabaseAdmin.from("password_history").insert(entry);
 }
+
+/** Finds the best registered mobile number for an account (used for SMS OTP). */
+export async function phoneFor(userId: string | null, email: string | null) {
+  const pick = (row: { phone?: string | null; alt_phone?: string | null } | null | undefined) =>
+    row?.phone || row?.alt_phone || null;
+
+  if (userId) {
+    const { data } = await supabaseAdmin
+      .from("profiles")
+      .select("phone,alt_phone")
+      .eq("id", userId)
+      .maybeSingle();
+    const p = pick(data);
+    if (p) return p;
+  }
+  if (email) {
+    const { data } = await supabaseAdmin
+      .from("members")
+      .select("phone,alt_phone")
+      .eq("email", email)
+      .maybeSingle();
+    const p = pick(data);
+    if (p) return p;
+
+    const { data: req } = await supabaseAdmin
+      .from("admin_signup_requests")
+      .select("phone,alt_phone")
+      .eq("email", email)
+      .maybeSingle();
+    const r = pick(req);
+    if (r) return r;
+
+    const { data: app } = await supabaseAdmin
+      .from("membership_applications")
+      .select("phone,alt_phone")
+      .eq("email", email)
+      .maybeSingle();
+    const a = pick(app);
+    if (a) return a;
+  }
+  return null;
+}
+
+/**
+ * Decides whether an account may sign in through a given login portal.
+ * A Member portal login is always allowed and never carries admin rights.
+ */
+export function portalAllowed(profile: "chairman" | "admin" | "member", roles: string[]) {
+  if (profile === "member") return true;
+  if (profile === "chairman") return roles.includes("admin") || roles.includes("super_admin");
+  return roles.includes("super_admin");
+}
