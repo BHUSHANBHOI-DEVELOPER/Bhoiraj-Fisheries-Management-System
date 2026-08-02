@@ -6,7 +6,8 @@ import { lovable } from "@/integrations/lovable/index";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth-context";
 import { SiteHeader } from "@/components/site-header";
-import { signInWithIdentifier, verifyCredentialsForOtp, logOtpOutcome } from "@/lib/auth.functions";
+import { signInWithIdentifier, startRoleLogin, completeRoleLogin, resendRoleOtp } from "@/lib/auth.functions";
+import { setActiveProfile } from "@/lib/auth-context";
 import { toast } from "sonner";
 import {
   Fish, Lock, Mail, ShieldCheck, Users, ArrowLeft, Eye, EyeOff, KeyRound, Wrench, RefreshCw,
