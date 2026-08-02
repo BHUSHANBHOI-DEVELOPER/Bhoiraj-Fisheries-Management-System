@@ -17,8 +17,8 @@ const profileSchema = z.enum(["chairman", "admin", "member"]);
 
 /**
  * Signs in a MEMBER using mobile / alternate mobile / Aadhaar / email + password.
- * Chairman and Admin profiles must use `verifyCredentialsForOtp` instead — they
- * only receive a session after their one-time code is matched.
+ * The member portal never grants Chairman or Admin rights, even if the account
+ * happens to hold them.
  */
 export const signInWithIdentifier = createServerFn({ method: "POST" })
   .inputValidator((input: { identifier: string; password: string }) =>
@@ -63,99 +63,142 @@ export const signInWithIdentifier = createServerFn({ method: "POST" })
   });
 
 /**
- * Step 1 of the Chairman / Admin login. Checks the password AND the role, then
- * returns only the account email so a one-time code can be emailed. No session
- * is issued here, so admin rights cannot be reached without matching the code.
+ * Step 1 of a Chairman / Admin login. Checks the password AND that the account
+ * holds rights for that specific portal, then sends a real 6-digit code by SMS.
+ * No session is issued here.
  */
-export const verifyCredentialsForOtp = createServerFn({ method: "POST" })
+export const startRoleLogin = createServerFn({ method: "POST" })
   .inputValidator((input: { identifier: string; password: string; profile: string }) =>
     identifierSchema
       .extend({ password: z.string().min(1).max(72), profile: profileSchema })
       .parse(input),
   )
   .handler(async ({ data }) => {
-    const { type, email } = await resolveEmail(data.identifier);
+    const { phoneFor, portalAllowed } = await import("@/lib/auth.server");
+    const { issueOtp } = await import("@/lib/otp.server");
+
+    const profile = data.profile as "chairman" | "admin" | "member";
+    const { type, email, userId } = await resolveEmail(data.identifier);
     const masked = maskIdentifier(type, data.identifier);
+    const action = `login_${profile}`;
 
     if (!email) {
-      await logRecovery({
-        identifier_type: type,
-        identifier_masked: masked,
-        action: `login_${data.profile}`,
-        succeeded: false,
-        detail: "No account found",
-      });
+      await logRecovery({ identifier_type: type, identifier_masked: masked, action, succeeded: false, detail: "No account found" });
       throw new Error("No account found for that mobile number / Aadhaar number / email.");
     }
 
     const client = publicAuthClient();
-    const { data: result, error } = await client.auth.signInWithPassword({
-      email,
-      password: data.password,
-    });
-
+    const { data: result, error } = await client.auth.signInWithPassword({ email, password: data.password });
     if (error || !result.user) {
-      await logRecovery({
-        identifier_type: type,
-        identifier_masked: masked,
-        action: `login_${data.profile}`,
-        succeeded: false,
-        detail: error?.message ?? "Invalid credentials",
-      });
+      await logRecovery({ identifier_type: type, identifier_masked: masked, action, succeeded: false, detail: error?.message ?? "Invalid credentials" });
       throw new Error("Incorrect password. Please try again.");
     }
 
     const roles = await rolesFor(result.user.id);
-    // The session created for this check is discarded immediately.
     await client.auth.signOut();
 
-    const isAdmin = roles.includes("admin") || roles.includes("super_admin");
-    if (!isAdmin) {
+    if (!portalAllowed(profile, roles)) {
       await logRecovery({
         identifier_type: type,
         identifier_masked: masked,
-        action: `login_${data.profile}`,
+        action,
         succeeded: false,
-        detail: "Account does not hold Chairman/Admin rights",
+        detail: `Account lacks rights for the ${profile} portal`,
         user_id: result.user.id,
       });
       throw new Error(
-        "These credentials are correct, but this account does not hold Chairman/Admin rights. Please use Member Login.",
+        profile === "chairman"
+          ? "This account is not approved as Chairman yet. Register as Chairman, or ask the Admin to approve you."
+          : "This account does not hold Admin/Developer rights. Please use the Chairman or Member portal.",
       );
     }
+
+    const phone = await phoneFor(userId ?? result.user.id, email);
+    const { sms } = await issueOtp({ email, userId: result.user.id, purpose: action, phone });
 
     await logRecovery({
       identifier_type: type,
       identifier_masked: masked,
-      action: `login_${data.profile}_password_ok`,
+      action: `${action}_password_ok`,
       succeeded: true,
+      detail: sms.sent ? "OTP sent by SMS" : `OTP created, SMS not sent: ${sms.reason}`,
       user_id: result.user.id,
     });
 
-    return { email, maskedEmail: mask(email), isSuperAdmin: roles.includes("super_admin") };
+    return {
+      email,
+      maskedEmail: mask(email),
+      maskedPhone: phone ? `******${phone.replace(/\D/g, "").slice(-4)}` : null,
+      smsSent: sms.sent,
+      smsReason: sms.reason,
+    };
   });
 
-/** Records the outcome of a one-time code check for the audit trail. */
-export const logOtpOutcome = createServerFn({ method: "POST" })
-  .inputValidator((input: { email: string; profile: string; succeeded: boolean; detail?: string }) =>
-    z
-      .object({
-        email: z.string().email().max(255),
+/** Step 2 — checks the numeric code, then issues the session. */
+export const completeRoleLogin = createServerFn({ method: "POST" })
+  .inputValidator((input: { identifier: string; password: string; profile: string; code: string }) =>
+    identifierSchema
+      .extend({
+        password: z.string().min(1).max(72),
         profile: profileSchema,
-        succeeded: z.boolean(),
-        detail: z.string().max(300).optional(),
+        code: z.string().trim().regex(/^\d{6}$/),
       })
       .parse(input),
   )
   .handler(async ({ data }) => {
-    await logRecovery({
-      identifier_type: "email",
-      identifier_masked: mask(data.email),
-      action: `otp_${data.profile}`,
-      succeeded: data.succeeded,
-      detail: data.detail,
+    const { portalAllowed } = await import("@/lib/auth.server");
+    const { consumeOtp } = await import("@/lib/otp.server");
+
+    const profile = data.profile as "chairman" | "admin" | "member";
+    const { type, email } = await resolveEmail(data.identifier);
+    const masked = maskIdentifier(type, data.identifier);
+    const action = `login_${profile}`;
+    if (!email) throw new Error("No account found for that identifier.");
+
+    const check = await consumeOtp(email, action, data.code);
+    if (!check.ok) {
+      await logRecovery({ identifier_type: type, identifier_masked: masked, action: `otp_${profile}`, succeeded: false, detail: check.reason ?? undefined });
+      throw new Error(check.reason ?? "That code is not correct.");
+    }
+
+    const client = publicAuthClient();
+    const { data: result, error } = await client.auth.signInWithPassword({ email, password: data.password });
+    if (error || !result.session || !result.user) throw new Error("Sign-in failed. Please start again.");
+
+    const roles = await rolesFor(result.user.id);
+    if (!portalAllowed(profile, roles)) {
+      await client.auth.signOut();
+      throw new Error("This account no longer holds rights for that portal.");
+    }
+
+    await logRecovery({ identifier_type: type, identifier_masked: masked, action: `otp_${profile}`, succeeded: true, user_id: result.user.id });
+
+    return {
+      access_token: result.session.access_token,
+      refresh_token: result.session.refresh_token,
+    };
+  });
+
+/** Resends the numeric code for a pending Chairman / Admin login. */
+export const resendRoleOtp = createServerFn({ method: "POST" })
+  .inputValidator((input: { email: string; profile: string }) =>
+    z.object({ email: z.string().email().max(255), profile: profileSchema }).parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { phoneFor } = await import("@/lib/auth.server");
+    const { issueOtp } = await import("@/lib/otp.server");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const email = data.email.toLowerCase();
+    const { data: prof } = await supabaseAdmin.from("profiles").select("id").eq("email", email).maybeSingle();
+    const phone = await phoneFor(prof?.id ?? null, email);
+    const { sms } = await issueOtp({
+      email,
+      userId: prof?.id ?? null,
+      purpose: `login_${data.profile}`,
+      phone,
     });
-    return { ok: true };
+    return { smsSent: sms.sent, smsReason: sms.reason };
   });
 
 /** "Forgot Login ID" — returns the masked email tied to a mobile/Aadhaar number. */

@@ -81,7 +81,7 @@ function AccountPage() {
           <div className="text-sm">
             <div className="font-medium">{user?.email}</div>
             <div className="text-xs text-muted-foreground">
-              Role: {isSuperAdmin ? "Chairman (super admin)" : isAdmin ? "Admin" : "Member"}
+              Role: {isSuperAdmin ? "Admin / Developer" : isAdmin ? "Chairman" : "Member"}
             </div>
           </div>
           <button

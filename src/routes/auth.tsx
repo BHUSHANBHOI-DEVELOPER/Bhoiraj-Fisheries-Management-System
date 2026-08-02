@@ -6,7 +6,8 @@ import { lovable } from "@/integrations/lovable/index";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth-context";
 import { SiteHeader } from "@/components/site-header";
-import { signInWithIdentifier, verifyCredentialsForOtp, logOtpOutcome } from "@/lib/auth.functions";
+import { signInWithIdentifier, startRoleLogin, completeRoleLogin, resendRoleOtp } from "@/lib/auth.functions";
+import { setActiveProfile } from "@/lib/auth-context";
 import { toast } from "sonner";
 import {
   Fish, Lock, Mail, ShieldCheck, Users, ArrowLeft, Eye, EyeOff, KeyRound, Wrench, RefreshCw,
@@ -63,9 +64,10 @@ function AuthPage() {
   const [code, setCode] = useState("");
   const [cooldown, setCooldown] = useState(0);
 
-  const verify = useServerFn(verifyCredentialsForOtp);
+  const startLogin = useServerFn(startRoleLogin);
+  const completeLogin = useServerFn(completeRoleLogin);
+  const resendOtp = useServerFn(resendRoleOtp);
   const signIn = useServerFn(signInWithIdentifier);
-  const logOtp = useServerFn(logOtpOutcome);
 
   const needsOtp = profile === "chairman" || profile === "admin";
 
@@ -94,15 +96,6 @@ function AuthPage() {
     setPassword("");
   }
 
-  async function sendCode(email: string) {
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { shouldCreateUser: false },
-    });
-    if (error) throw error;
-    setCooldown(45);
-  }
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (identifier.trim().length < 3) return toast.error("Enter your mobile number, Aadhaar number or email.");
@@ -110,12 +103,17 @@ function AuthPage() {
     setBusy(true);
     try {
       if (needsOtp) {
-        const res = await verify({ data: { identifier: identifier.trim(), password, profile: profile! } });
-        await sendCode(res.email);
+        const res = await startLogin({ data: { identifier: identifier.trim(), password, profile: profile! } });
         setOtpEmail(res.email);
         setMaskedEmail(res.maskedEmail);
-        toast.success(`Password verified. A secure sign-in email was sent to ${res.maskedEmail}.`);
+        setCooldown(45);
+        if (res.smsSent) {
+          toast.success(`Password verified. A 6-digit code was sent by SMS to ${res.maskedPhone}.`);
+        } else {
+          toast.warning(`Password verified, but the code could not be texted (${res.smsReason}). Ask the Admin for the code.`);
+        }
       } else {
+        setActiveProfile("member");
         const tokens = await signIn({ data: { identifier: identifier.trim(), password } });
         const { error } = await supabase.auth.setSession({
           access_token: tokens.access_token,
@@ -134,18 +132,18 @@ function AuthPage() {
   async function handleVerifyCode(e: React.FormEvent) {
     e.preventDefault();
     if (!otpEmail) return;
-    if (!/^\d{6}$/.test(code.trim())) return toast.error("Enter the 6-digit code from your email.");
+    if (!/^\d{6}$/.test(code.trim())) return toast.error("Enter the 6-digit code sent to your mobile.");
     setBusy(true);
     try {
-      const { error } = await supabase.auth.verifyOtp({
-        email: otpEmail,
-        token: code.trim(),
-        type: "email",
+      const tokens = await completeLogin({
+        data: { identifier: identifier.trim(), password, profile: profile!, code: code.trim() },
       });
-      await logOtp({
-        data: { email: otpEmail, profile: profile!, succeeded: !error, detail: error?.message },
+      setActiveProfile(profile!);
+      const { error } = await supabase.auth.setSession({
+        access_token: tokens.access_token,
+        refresh_token: tokens.refresh_token,
       });
-      if (error) throw new Error("That code is not correct or has expired. Please request a new one.");
+      if (error) throw error;
       toast.success(profile === "chairman" ? "Chairman access granted." : "Admin access granted.");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not verify the code");
@@ -158,8 +156,10 @@ function AuthPage() {
     if (!otpEmail || cooldown > 0) return;
     setBusy(true);
     try {
-      await sendCode(otpEmail);
-      toast.success("A new code has been emailed to you.");
+      const res = await resendOtp({ data: { email: otpEmail, profile: profile! } });
+      setCooldown(45);
+      if (res.smsSent) toast.success("A new code has been texted to you.");
+      else toast.warning(`Code regenerated, but SMS failed (${res.smsReason}).`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not resend the code");
     } finally {
@@ -169,6 +169,7 @@ function AuthPage() {
 
   async function handleGoogle() {
     setBusy(true);
+    setActiveProfile(profile ?? "member");
     const res = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
     if (res.error) toast.error(res.error.message || "Google sign-in failed");
     setBusy(false);
@@ -276,9 +277,9 @@ function AuthPage() {
               <h1 className="mt-4 font-display text-2xl font-bold">{meta?.title}</h1>
               <p className="mt-1 text-sm text-muted-foreground">
                 {otpEmail
-                  ? `Step 2 of 2 — verify the email we just sent to ${maskedEmail}`
+                  ? `Step 2 of 2 — enter the 6-digit code we texted you`
                   : needsOtp
-                    ? "Step 1 of 2 — password, then a one-time code by email"
+                    ? "Step 1 of 2 — password, then a 6-digit code by SMS"
                     : t("auth.title")}
               </p>
             </div>
@@ -286,7 +287,7 @@ function AuthPage() {
             {otpEmail ? (
               <form onSubmit={handleVerifyCode} className="space-y-4">
                 <div>
-                  <label className="text-xs font-medium">6-digit one-time code</label>
+                  <label className="text-xs font-medium">6-digit code sent to your mobile</label>
                   <div className="relative mt-1">
                     <KeyRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <input
@@ -322,9 +323,7 @@ function AuthPage() {
                   </button>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Access is granted only after this email is verified. Open the email and either tap the secure sign-in
-                  link or type the 6-digit code if your email shows one. Every attempt is
-
+                  Access is granted only after this code matches. The code is valid for 10 minutes, and every attempt is
                   recorded in the activity log.
                 </p>
               </form>
@@ -408,7 +407,7 @@ function AuthPage() {
                 {needsOtp && (
                   <p className="mt-3 rounded-md border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
                     {profile === "chairman" ? "Chairman" : "Admin"} rights open only through this door, and only after the
-                    emailed one-time code is matched.
+                    6-digit code texted to the registered mobile number is matched.
                   </p>
                 )}
 
