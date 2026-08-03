@@ -674,7 +674,7 @@ export type Database = {
       }
       membership_applications: {
         Row: {
-          aadhaar_number: string
+          aadhaar_number: string | null
           address: string | null
           alt_phone: string | null
           created_at: string
@@ -698,7 +698,7 @@ export type Database = {
           village: string | null
         }
         Insert: {
-          aadhaar_number: string
+          aadhaar_number?: string | null
           address?: string | null
           alt_phone?: string | null
           created_at?: string
@@ -722,7 +722,7 @@ export type Database = {
           village?: string | null
         }
         Update: {
-          aadhaar_number?: string
+          aadhaar_number?: string | null
           address?: string | null
           alt_phone?: string | null
           created_at?: string
@@ -834,6 +834,7 @@ export type Database = {
           preferred_language: string | null
           taluka: string | null
           updated_at: string
+          user_id: string | null
           village: string | null
         }
         Insert: {
@@ -850,6 +851,7 @@ export type Database = {
           preferred_language?: string | null
           taluka?: string | null
           updated_at?: string
+          user_id?: string | null
           village?: string | null
         }
         Update: {
@@ -866,6 +868,7 @@ export type Database = {
           preferred_language?: string | null
           taluka?: string | null
           updated_at?: string
+          user_id?: string | null
           village?: string | null
         }
         Relationships: []
