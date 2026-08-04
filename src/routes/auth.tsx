@@ -329,8 +329,7 @@ function AuthPage() {
               </form>
             ) : (
               <>
-                {profile === "member" && (
-                  <>
+                <>
                     <button
                       onClick={handleGoogle}
                       disabled={busy}
@@ -342,13 +341,12 @@ function AuthPage() {
                     <div className="my-5 flex items-center gap-3 text-xs uppercase tracking-wider text-muted-foreground">
                       <div className="h-px flex-1 bg-border" /> {t("auth.or")} <div className="h-px flex-1 bg-border" />
                     </div>
-                  </>
-                )}
+                </>
 
                 <form onSubmit={handleSubmit} className="space-y-3">
                   <div>
                     <label className="text-xs font-medium" htmlFor="login-identifier">
-                      Mobile number, Aadhaar number or email
+                      User ID, mobile number, Aadhaar number or email
                     </label>
                     <div className="relative mt-1">
                       <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -359,7 +357,7 @@ function AuthPage() {
                         autoComplete="username"
                         value={identifier}
                         onChange={(e) => setIdentifier(e.target.value)}
-                        placeholder="9876543210 / 123412341234 / you@example.com"
+                        placeholder="user-id / 9876543210 / you@example.com"
                         className="w-full rounded-md border border-input bg-background px-3 py-2 pl-9 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                         required
                       />

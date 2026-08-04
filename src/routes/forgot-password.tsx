@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
-import { recoverLoginId, setNewPasswordDirect } from "@/lib/auth.functions";
+import { recoverLoginId, requestRecoveryOtp, completePasswordRecovery } from "@/lib/auth.functions";
 import { generatePassword, ratePassword } from "@/lib/password";
 import { toast } from "sonner";
 import { KeyRound, IdCard, ArrowLeft, Eye, EyeOff, Wand2 } from "lucide-react";
@@ -28,7 +28,8 @@ export const Route = createFileRoute("/forgot-password")({
 
 function ForgotPage() {
   const [identifier, setIdentifier] = useState("");
-  const [secret, setSecret] = useState("");
+  const [code, setCode] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [show, setShow] = useState(true);
@@ -37,7 +38,8 @@ function ForgotPage() {
   const [done, setDone] = useState(false);
 
   const recover = useServerFn(recoverLoginId);
-  const setNew = useServerFn(setNewPasswordDirect);
+  const sendOtp = useServerFn(requestRecoveryOtp);
+  const setNew = useServerFn(completePasswordRecovery);
   const strength = ratePassword(password);
 
   async function handleFindId() {
@@ -62,17 +64,32 @@ function ForgotPage() {
   async function handleSet(e: React.FormEvent) {
     e.preventDefault();
     if (identifier.trim().length < 3) return toast.error("Enter your mobile, Aadhaar number or email.");
-    if (secret.replace(/\D/g, "").length < 4) return toast.error("Enter your registered mobile number or the last 4 digits of your Aadhaar.");
+    if (!otpSent) return toast.error("Request a one-time code first.");
+    if (!/^\d{6}$/.test(code)) return toast.error("Enter the 6-digit one-time code.");
     if (password.length <= 8) return toast.error("The new password must be more than 8 characters.");
     if (password !== confirm) return toast.error("The two passwords do not match.");
     setBusy(true);
     try {
-      const res = await setNew({ data: { identifier: identifier.trim(), secret, newPassword: password } });
+      const res = await setNew({ data: { identifier: identifier.trim(), code, newPassword: password } });
       setMaskedEmail(res.maskedEmail);
       setDone(true);
       toast.success("Your new password is active. You can sign in with it right now.");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not change the password");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleSendOtp() {
+    if (identifier.trim().length < 3) return toast.error("Enter your User ID, mobile, Aadhaar number or email.");
+    setBusy(true);
+    try {
+      const res = await sendOtp({ data: { identifier: identifier.trim() } });
+      setOtpSent(true);
+      toast.success(`A 6-digit code was sent to ${res.maskedPhone}.`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not send the code");
     } finally {
       setBusy(false);
     }
@@ -115,12 +132,12 @@ function ForgotPage() {
           ) : (
             <form onSubmit={handleSet} className="mt-5 space-y-4">
               <div>
-                <label className="text-xs font-medium">Registered mobile number, Aadhaar number or email</label>
+                <label className="text-xs font-medium">User ID, registered mobile, Aadhaar number or email</label>
                 <input
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
                   autoComplete="username"
-                  placeholder="9876543210 / 123412341234 / you@example.com"
+                  placeholder="user-id / 9876543210 / you@example.com"
                   className={field}
                 />
               </div>
@@ -142,16 +159,22 @@ function ForgotPage() {
               )}
 
               <div className="rounded-xl border border-border bg-muted/30 p-4">
-                <label className="text-xs font-semibold">Verify it is you</label>
+                <div className="flex items-center justify-between gap-3">
+                  <label className="text-xs font-semibold">SMS one-time code</label>
+                  <button type="button" onClick={handleSendOtp} disabled={busy} className="rounded-md bg-saffron px-3 py-1.5 text-xs font-semibold text-saffron-foreground disabled:opacity-50">
+                    {otpSent ? "Send again" : "Send code"}
+                  </button>
+                </div>
                 <input
-                  value={secret}
-                  onChange={(e) => setSecret(e.target.value)}
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
                   inputMode="numeric"
-                  placeholder="Registered 10-digit mobile, or last 4 digits of Aadhaar"
+                  autoComplete="one-time-code"
+                  placeholder="6-digit code"
                   className={field}
                 />
                 <p className="mt-1.5 text-[11px] text-muted-foreground">
-                  This second check stops anyone else from changing your password.
+                  The password changes only after the code sent to your registered mobile matches.
                 </p>
               </div>
 

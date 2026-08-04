@@ -40,6 +40,11 @@ function VisitorCounter() {
 }
 
 export function SiteFooter() {
+  const [showVisitors, setShowVisitors] = useState(false);
+  useEffect(() => {
+    const host = window.location.hostname;
+    setShowVisitors(host.endsWith(".lovable.app") && !host.includes("-preview--"));
+  }, []);
   return (
     <footer className="mt-24 border-t border-border bg-primary text-primary-foreground">
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 md:grid-cols-4">
@@ -80,7 +85,7 @@ export function SiteFooter() {
           <p className="min-w-0 text-xs text-primary-foreground/60">
             © {new Date().getFullYear()} {SITE.shortName}. All rights reserved.
           </p>
-          <VisitorCounter />
+          {showVisitors && <VisitorCounter />}
         </div>
       </div>
     </footer>
