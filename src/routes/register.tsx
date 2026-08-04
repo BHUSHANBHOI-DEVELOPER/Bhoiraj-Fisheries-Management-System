@@ -29,7 +29,7 @@ const schema = z.object({
   phone: z.string().trim().regex(/^[0-9]{10}$/, "Mobile number must be 10 digits"),
   alt_phone: z.string().trim().regex(/^[0-9]{10}$/, "Alternate mobile number must be 10 digits").optional().or(z.literal("")),
   email: z.string().trim().email("Enter a valid email").max(255),
-  aadhaar_number: z.string().trim().regex(/^[0-9]{12}$/, "Aadhaar must be exactly 12 digits"),
+  aadhaar_number: z.string().trim().regex(/^$|^[0-9]{12}$/, "Aadhaar must be exactly 12 digits").optional().or(z.literal("")),
   pan: z.string().trim().regex(/^[A-Z]{5}[0-9]{4}[A-Z]$/, "PAN must look like ABCDE1234F").optional().or(z.literal("")),
   eshram_number: z.string().trim().max(20).optional().or(z.literal("")),
   dob: z.string().min(1, "Date of birth is required"),
@@ -70,7 +70,7 @@ function RegisterPage() {
     setForm((f) => ({ ...f, [k]: k === "pan" ? e.target.value.toUpperCase() : e.target.value }));
 
   function suggestPassword() {
-    const pw = generatePassword();
+    const pw = generatePassword(form.full_name);
     setForm((f) => ({ ...f, password: pw }));
     setConfirmPassword(pw);
     setShowPassword(true);
@@ -154,7 +154,7 @@ function RegisterPage() {
         phone: form.phone,
         alt_phone: form.alt_phone || null,
         email: form.email,
-        aadhaar_number: form.aadhaar_number,
+        aadhaar_number: form.aadhaar_number || null,
         pan: form.pan || null,
         eshram_number: form.eshram_number || null,
         dob: form.dob,
@@ -226,7 +226,7 @@ function RegisterPage() {
           </span>
           <h1 className="mt-4 font-display text-3xl font-bold md:text-4xl">Register as a member</h1>
           <p className="mt-2 max-w-2xl text-primary-foreground/85">
-            Fill in your details below. Mobile number and 12-digit Aadhaar are mandatory, and applicants must be at least 20 years old.
+            Fill in your details below. A unique mobile number is mandatory, Aadhaar is optional, and applicants must be at least 20 years old.
           </p>
         </div>
       </section>
@@ -240,7 +240,7 @@ function RegisterPage() {
             <Field label="Mobile Number *" value={form.phone} onChange={set("phone")} required inputMode="numeric" maxLength={10} placeholder="10 digits" autoComplete="tel" />
             <Field label="Alternate Mobile Number" value={form.alt_phone} onChange={set("alt_phone")} inputMode="numeric" maxLength={10} placeholder="Optional — 10 digits" />
             <Field label="Email *" type="email" value={form.email} onChange={set("email")} required autoComplete="email" />
-            <Field label="Aadhaar Card Number *" value={form.aadhaar_number} onChange={set("aadhaar_number")} required inputMode="numeric" maxLength={12} placeholder="12 digits" />
+            <Field label="Aadhaar Card Number (optional)" value={form.aadhaar_number} onChange={set("aadhaar_number")} inputMode="numeric" maxLength={12} placeholder="12 digits" />
             <Field label="PAN Card Number" value={form.pan} onChange={set("pan")} maxLength={10} placeholder="ABCDE1234F" />
             <Field label="e-Shram Card Number" value={form.eshram_number} onChange={set("eshram_number")} />
             <Field label="Date of Birth *" type="date" value={form.dob} onChange={set("dob")} required autoComplete="bday" />
