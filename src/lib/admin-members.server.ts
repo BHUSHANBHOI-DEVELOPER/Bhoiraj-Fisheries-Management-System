@@ -35,7 +35,11 @@ export async function rejectMembership(applicationId: string, reviewerId: string
   if (error) throw new Error(error.message);
 }
 
-export async function updateMemberRecord(memberId: string, changes: Record<string, string | null>) {
+type MemberChanges = {
+  full_name: string; phone: string; email: string | null; village: string | null; status: string;
+};
+
+export async function updateMemberRecord(memberId: string, changes: MemberChanges) {
   const { error } = await supabaseAdmin.from("members").update(changes).eq("id", memberId);
   if (error) throw new Error(error.message);
 }

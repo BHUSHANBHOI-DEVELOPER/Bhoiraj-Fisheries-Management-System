@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { createAdminInvite, decideAdminInvite } from "@/lib/admin-invites.functions";
+import { reviewMembership } from "@/lib/admin-members.functions";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -242,6 +243,7 @@ function AdminAccessPanel() {
 function Approvals() {
   const qc = useQueryClient();
   const [busy, setBusy] = useState<string | null>(null);
+  const review = useServerFn(reviewMembership);
 
   const { data = [], isLoading } = useQuery({
     queryKey: ["applications"],
@@ -257,46 +259,7 @@ function Approvals() {
   async function decide(app: (typeof data)[number], approve: boolean) {
     setBusy(app.id);
     try {
-      if (approve) {
-        const membershipNumber = `BMS-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
-        const { error } = await supabase.from("members").insert({
-          user_id: app.user_id,
-          membership_number: membershipNumber,
-          full_name: app.full_name,
-          surname: app.surname,
-          father_husband_name: app.father_husband_name,
-          father_name: app.father_husband_name,
-          phone: app.phone,
-          email: app.email,
-          aadhaar_number: app.aadhaar_number,
-          aadhaar_last4: app.aadhaar_number.slice(-4),
-          pan: app.pan,
-          eshram_number: app.eshram_number,
-          dob: app.dob,
-          village: app.village,
-          taluka: app.taluka,
-          district: app.district,
-          address: app.address,
-          approval_status: "approved",
-          approved_at: new Date().toISOString(),
-        });
-        if (error) throw error;
-      }
-      await supabase
-        .from("membership_applications")
-        .update({ status: approve ? "approved" : "rejected", reviewed_at: new Date().toISOString() })
-        .eq("id", app.id);
-
-      if (app.user_id) {
-        await supabase.from("notifications").insert({
-          recipient_id: app.user_id,
-          title: approve ? "Membership approved" : "Membership application declined",
-          body: approve
-            ? "Welcome! Your membership is approved and your name now appears in the registered members list."
-            : "Please contact the Chairman for details.",
-          category: "membership",
-        });
-      }
+      await review({ data: { applicationId: app.id, approve } });
       toast.success(approve ? "Member approved and published." : "Application rejected.");
       qc.invalidateQueries();
     } catch (err) {
@@ -327,7 +290,7 @@ function Approvals() {
                     <span>Father/Husband: {a.father_husband_name ?? "—"}</span>
                     <span>Mobile: {a.phone}</span>
                     <span>Email: {a.email ?? "—"}</span>
-                    <span>Aadhaar: {a.aadhaar_number}</span>
+                    <span>Aadhaar: {a.aadhaar_number ?? "—"}</span>
                     <span>PAN: {a.pan ?? "—"}</span>
                     <span>e-Shram: {a.eshram_number ?? "—"}</span>
                     <span>DOB: {a.dob}</span>

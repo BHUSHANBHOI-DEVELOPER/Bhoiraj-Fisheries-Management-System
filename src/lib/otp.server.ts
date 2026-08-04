@@ -1,6 +1,7 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const GATEWAY_URL = "https://connector-gateway.lovable.dev/twilio";
+const GATEWAY_API_URL = "https://connector-gateway.lovable.dev/gatewayapi";
 
 function sixDigits() {
   return String(Math.floor(100000 + Math.random() * 900000));
@@ -19,10 +20,30 @@ export function toE164(raw: string | null | undefined) {
 /** Best-effort SMS delivery through the Twilio connector gateway. */
 export async function sendSms(to: string, body: string) {
   const lovableKey = process.env["LOVABLE_API_KEY"];
+  const gatewayApiKey = process.env["GATEWAYAPI_API_KEY"];
   const twilioKey = process.env["TWILIO_API_KEY"];
   const from = process.env["TWILIO_FROM_NUMBER"];
-  if (!lovableKey || !twilioKey || !from) {
-    return { sent: false, reason: "SMS sender not configured yet" };
+  if (!lovableKey) return { sent: false, reason: "Messaging service is not configured" };
+
+  if (gatewayApiKey) {
+    const recipient = Number(to.replace(/\D/g, ""));
+    const response = await fetch(`${GATEWAY_API_URL}/mobile/single`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${lovableKey}`,
+        "X-Connection-Api-Key": gatewayApiKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ sender: "Bhoiraj", recipient, message: body }),
+    });
+    if (response.ok) return { sent: true, reason: null as string | null };
+    const text = await response.text();
+    console.error(`GatewayAPI send failed [${response.status}]: ${text}`);
+    return { sent: false, reason: `SMS provider error [${response.status}]` };
+  }
+
+  if (!twilioKey || !from) {
+    return { sent: false, reason: "Twilio is connected but has no sending phone number" };
   }
 
   const res = await fetch(`${GATEWAY_URL}/Messages.json`, {
