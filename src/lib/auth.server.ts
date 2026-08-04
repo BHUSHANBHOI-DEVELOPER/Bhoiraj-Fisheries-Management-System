@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 
 export function classify(raw: string) {
   const v = raw.trim();
+  if (/^[a-z][a-z0-9._-]{2,31}$/i.test(v) && !v.includes("@")) return { type: "user_id" as const, value: v.toLowerCase() };
   if (/^\d{12}$/.test(v.replace(/\s/g, ""))) return { type: "aadhaar" as const, value: v.replace(/\s/g, "") };
   const digits = v.replace(/[^0-9]/g, "");
   if (/^\d{10}$/.test(digits) && !v.includes("@")) return { type: "phone" as const, value: digits };
@@ -30,6 +31,11 @@ export async function resolveEmail(raw: string) {
   const { type, value } = classify(raw);
 
   if (type === "email") return { type, email: value, userId: null as string | null };
+
+  if (type === "user_id") {
+    const { data } = await supabaseAdmin.from("profiles").select("email,id").ilike("user_id", value).maybeSingle();
+    return { type, email: data?.email?.toLowerCase() ?? null, userId: data?.id ?? null };
+  }
 
   let email: string | null = null;
   let userId: string | null = null;
@@ -250,6 +256,17 @@ export async function phoneFor(userId: string | null, email: string | null) {
     if (a) return a;
   }
   return null;
+}
+
+export async function memberIsApproved(userId: string) {
+  const { data } = await supabaseAdmin
+    .from("members")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("approval_status", "approved")
+    .eq("status", "active")
+    .maybeSingle();
+  return Boolean(data);
 }
 
 /**
