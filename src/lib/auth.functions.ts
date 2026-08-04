@@ -54,7 +54,12 @@ export const signInWithIdentifier = createServerFn({ method: "POST" })
       user_id: result?.user?.id ?? null,
     });
 
-    if (error || !result.session) throw new Error(error?.message ?? "Invalid credentials");
+    if (error || !result.session || !result.user) throw new Error(error?.message ?? "Invalid credentials");
+    const { memberIsApproved } = await import("@/lib/auth.server");
+    if (!(await memberIsApproved(result.user.id))) {
+      await client.auth.signOut();
+      throw new Error("Please register first and wait for the Chairman to approve your membership before signing in.");
+    }
 
     return {
       access_token: result.session.access_token,
@@ -215,6 +220,38 @@ export const recoverLoginId = createServerFn({ method: "POST" })
     });
     if (!email) return { found: false as const };
     return { found: true as const, maskedEmail: mask(email) };
+  });
+
+export const requestRecoveryOtp = createServerFn({ method: "POST" })
+  .inputValidator((input: { identifier: string }) => identifierSchema.parse(input))
+  .handler(async ({ data }) => {
+    const { resolveAccount, phoneFor } = await import("@/lib/auth.server");
+    const { issueOtp } = await import("@/lib/otp.server");
+    const account = await resolveAccount(data.identifier);
+    if (!account.email || !account.userId) throw new Error("No approved account was found for that login ID.");
+    const phone = await phoneFor(account.userId, account.email);
+    if (!phone) throw new Error("No registered mobile number is available for this account.");
+    const { sms } = await issueOtp({ email: account.email, userId: account.userId, purpose: "password_recovery", phone });
+    if (!sms.sent) throw new Error(`The one-time code could not be sent: ${sms.reason}`);
+    return { maskedPhone: `******${phone.replace(/\D/g, "").slice(-4)}` };
+  });
+
+export const completePasswordRecovery = createServerFn({ method: "POST" })
+  .inputValidator((input: { identifier: string; code: string; newPassword: string }) =>
+    identifierSchema.extend({ code: z.string().regex(/^\d{6}$/), newPassword: z.string().min(9).max(72) }).parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { resolveAccount, recordPasswordChange } = await import("@/lib/auth.server");
+    const { consumeOtp } = await import("@/lib/otp.server");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const account = await resolveAccount(data.identifier);
+    if (!account.email || !account.userId) throw new Error("Account not found.");
+    const check = await consumeOtp(account.email, "password_recovery", data.code);
+    if (!check.ok) throw new Error(check.reason ?? "The one-time code is incorrect.");
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(account.userId, { password: data.newPassword });
+    if (error) throw new Error(error.message);
+    await recordPasswordChange({ user_id: account.userId, user_email: account.email, method: "sms_otp" });
+    return { ok: true as const, maskedEmail: mask(account.email) };
   });
 
 /** "Forgot Password" — sends a reset link to the account behind any identifier. */

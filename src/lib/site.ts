@@ -61,7 +61,7 @@ export const ROADMAP = [
   { step: 1, title: "Open Registration", body: "Tap the New Member Registration button on this page." },
   { step: 2, title: "Enter your name", body: "Full name, father's or husband's name and surname, exactly as on your Aadhaar." },
   { step: 3, title: "Mobile number", body: "A 10-digit mobile number, unique to you. This becomes your login ID." },
-  { step: 4, title: "Aadhaar & documents", body: "12-digit Aadhaar number is mandatory; PAN and e-Shram numbers are optional." },
+  { step: 4, title: "Identity documents", body: "Aadhaar, PAN and e-Shram numbers are optional and can help with scheme applications." },
   { step: 5, title: "Age check", body: "The portal accepts applicants aged 20 years and above." },
   { step: 6, title: "Create a password", body: "Use the strong password suggestion so your browser can save it safely." },
   { step: 7, title: "Chairman verification", body: "The Chairman reviews your application and approves genuine applicants." },
@@ -76,7 +76,7 @@ export const FAQS = [
   },
   {
     q: "Which documents do I need for registration?",
-    a: "A 12-digit Aadhaar number and a working 10-digit mobile number are mandatory. PAN and e-Shram card numbers are optional but recommended for scheme benefits.",
+    a: "A working, unique 10-digit mobile number is mandatory. Aadhaar, PAN and e-Shram card numbers are optional but recommended for scheme benefits.",
   },
   {
     q: "Can two members register with the same mobile number?",

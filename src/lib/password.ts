@@ -17,8 +17,9 @@ function pick<T>(arr: readonly T[] | string): T | string {
  * Generates a strong yet memorable passphrase, e.g. `Sagar-Trawler47!`.
  * Long and random enough that it will not appear in any leaked-password list.
  */
-export function generatePassword(): string {
-  const a = pick(WORDS) as string;
+export function generatePassword(name?: string): string {
+  const cleanName = name?.trim().split(/\s+/)[0]?.replace(/[^A-Za-z]/g, "");
+  const a = cleanName && cleanName.length >= 3 ? `${cleanName[0].toUpperCase()}${cleanName.slice(1).toLowerCase()}` : pick(WORDS) as string;
   let b = pick(WORDS) as string;
   while (b === a) b = pick(WORDS) as string;
   const nums = String(10 + Math.floor(Math.random() * 89));

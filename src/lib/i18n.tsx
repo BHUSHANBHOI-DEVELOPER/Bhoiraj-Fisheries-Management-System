@@ -77,7 +77,10 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   const setLang = (l: Lang) => {
     setLangState(l);
-    if (typeof window !== "undefined") window.localStorage.setItem("lang", l);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("lang", l);
+      document.documentElement.lang = l;
+    }
   };
 
   const t = (k: keyof typeof dict) => dict[k]?.[lang] ?? String(k);
