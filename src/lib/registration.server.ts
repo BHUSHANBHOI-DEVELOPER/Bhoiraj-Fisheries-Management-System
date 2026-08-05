@@ -91,9 +91,10 @@ export async function grantRole(userId: string, role: Exclude<SignupRole, "membe
 }
 
 export async function saveHandle(userId: string, handle: string | null, phone: string, email: string, fullName: string) {
-  const patch: Record<string, string | null> = { full_name: fullName, email, phone };
-  if (handle) patch.user_id = handle.toLowerCase();
-  const { error } = await supabaseAdmin.from("profiles").update(patch).eq("id", userId);
+  const { error } = await supabaseAdmin
+    .from("profiles")
+    .update({ full_name: fullName, email, phone, ...(handle ? { user_id: handle.toLowerCase() } : {}) })
+    .eq("id", userId);
   if (error) throw new Error(error.message);
 }
 
