@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
-  validateSearch: (s: Record<string, unknown>) => ({
+  validateSearch: (s: Record<string, unknown>): { redirect?: string; profile?: "chairman" | "member" | "admin" } => ({
     redirect: typeof s.redirect === "string" ? s.redirect : "/dashboard",
     profile:
       s.profile === "chairman" || s.profile === "member" || s.profile === "admin"
