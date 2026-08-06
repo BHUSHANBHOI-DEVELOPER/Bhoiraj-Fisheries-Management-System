@@ -68,10 +68,67 @@ export const signInWithIdentifier = createServerFn({ method: "POST" })
   });
 
 /**
+ * Chairman / Admin login in ONE step — password + portal-rights check, no OTP.
+ * OTP is used only during registration.
+ */
+export const signInAsRole = createServerFn({ method: "POST" })
+  .inputValidator((input: { identifier: string; password: string; profile: string }) =>
+    identifierSchema
+      .extend({ password: z.string().min(1).max(72), profile: profileSchema })
+      .parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { portalAllowed } = await import("@/lib/auth.server");
+
+    const profile = data.profile as "chairman" | "admin" | "member";
+    const { type, email } = await resolveEmail(data.identifier);
+    const masked = maskIdentifier(type, data.identifier);
+    const action = `login_${profile}`;
+
+    if (!email) {
+      await logRecovery({ identifier_type: type, identifier_masked: masked, action, succeeded: false, detail: "No account found" });
+      throw new Error("No account found for that User ID / mobile number / Aadhaar number / email.");
+    }
+
+    const client = publicAuthClient();
+    const { data: result, error } = await client.auth.signInWithPassword({ email, password: data.password });
+    if (error || !result.session || !result.user) {
+      await logRecovery({ identifier_type: type, identifier_masked: masked, action, succeeded: false, detail: error?.message ?? "Invalid credentials" });
+      throw new Error("Incorrect password. Please try again.");
+    }
+
+    const roles = await rolesFor(result.user.id);
+    if (!portalAllowed(profile, roles)) {
+      await client.auth.signOut();
+      await logRecovery({
+        identifier_type: type,
+        identifier_masked: masked,
+        action,
+        succeeded: false,
+        detail: `Account lacks rights for the ${profile} portal`,
+        user_id: result.user.id,
+      });
+      throw new Error(
+        profile === "chairman"
+          ? "This account is not approved as Chairman yet. Register as Chairman, or ask the Admin to approve you."
+          : "This account does not hold Admin/Developer rights. Please use the Chairman or Member portal.",
+      );
+    }
+
+    await logRecovery({ identifier_type: type, identifier_masked: masked, action, succeeded: true, user_id: result.user.id });
+
+    return {
+      access_token: result.session.access_token,
+      refresh_token: result.session.refresh_token,
+    };
+  });
+
+/**
  * Step 1 of a Chairman / Admin login. Checks the password AND that the account
  * holds rights for that specific portal, then sends a real 6-digit code by SMS.
  * No session is issued here.
  */
+
 export const startRoleLogin = createServerFn({ method: "POST" })
   .inputValidator((input: { identifier: string; password: string; profile: string }) =>
     identifierSchema
