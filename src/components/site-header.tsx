@@ -6,6 +6,7 @@ import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { LanguageSwitcher } from "./language-switcher";
+import { ThemeToggle } from "./theme-toggle";
 import { SocietyEmblem } from "./society-emblem";
 import { SITE } from "@/lib/site";
 
@@ -64,6 +65,7 @@ export function SiteHeader() {
                 </a>
               );
             })}
+            <ThemeToggle />
             <LanguageSwitcher />
           </div>
         </div>
