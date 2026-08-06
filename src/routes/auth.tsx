@@ -6,11 +6,11 @@ import { lovable } from "@/integrations/lovable/index";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth-context";
 import { SiteHeader } from "@/components/site-header";
-import { signInWithIdentifier, startRoleLogin, completeRoleLogin, resendRoleOtp } from "@/lib/auth.functions";
+import { signInWithIdentifier, signInAsRole } from "@/lib/auth.functions";
 import { setActiveProfile } from "@/lib/auth-context";
 import { toast } from "sonner";
 import {
-  Fish, Lock, Mail, ShieldCheck, Users, ArrowLeft, Eye, EyeOff, KeyRound, Wrench, RefreshCw,
+  Fish, Lock, Mail, ShieldCheck, Users, ArrowLeft, Eye, EyeOff, Wrench,
 } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
@@ -58,70 +58,38 @@ function AuthPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  // OTP stage (Chairman / Admin only)
-  const [otpEmail, setOtpEmail] = useState<string | null>(null);
-  const [maskedEmail, setMaskedEmail] = useState("");
-  const [code, setCode] = useState("");
-  const [cooldown, setCooldown] = useState(0);
-
-  const startLogin = useServerFn(startRoleLogin);
-  const completeLogin = useServerFn(completeRoleLogin);
-  const resendOtp = useServerFn(resendRoleOtp);
+  const roleSignIn = useServerFn(signInAsRole);
   const signIn = useServerFn(signInWithIdentifier);
 
-  const needsOtp = profile === "chairman" || profile === "admin";
+  const isRolePortal = profile === "chairman" || profile === "admin";
 
   useEffect(() => {
     if (initialProfile) setProfile(initialProfile);
   }, [initialProfile]);
 
   useEffect(() => {
-    if (cooldown <= 0) return;
-    const id = setTimeout(() => setCooldown((c) => c - 1), 1000);
-    return () => clearTimeout(id);
-  }, [cooldown]);
-
-  useEffect(() => {
     if (loading || !user) return;
-    if (needsOtp) {
-      navigate({ to: isAdmin ? "/admin" : "/dashboard" });
-      return;
-    }
-    navigate({ to: redirect || "/dashboard" });
-  }, [user, loading, isAdmin, needsOtp, navigate, redirect]);
-
-  function resetToPassword() {
-    setOtpEmail(null);
-    setCode("");
-    setPassword("");
-  }
+    navigate({ to: isAdmin ? "/dashboard" : redirect || "/dashboard" });
+  }, [user, loading, isAdmin, navigate, redirect]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (identifier.trim().length < 3) return toast.error("Enter your mobile number, Aadhaar number or email.");
+    if (identifier.trim().length < 3) return toast.error("Enter your User ID, mobile number, Aadhaar number or email.");
     if (password.length < 1) return toast.error("Enter your password.");
     setBusy(true);
     try {
-      if (needsOtp) {
-        const res = await startLogin({ data: { identifier: identifier.trim(), password, profile: profile! } });
-        setOtpEmail(res.email);
-        setMaskedEmail(res.maskedEmail);
-        setCooldown(45);
-        if (res.smsSent) {
-          toast.success(`Password verified. A 6-digit code was sent by SMS to ${res.maskedPhone}.`);
-        } else {
-          toast.warning(`Password verified, but the code could not be texted (${res.smsReason}). Ask the Admin for the code.`);
-        }
-      } else {
-        setActiveProfile("member");
-        const tokens = await signIn({ data: { identifier: identifier.trim(), password } });
-        const { error } = await supabase.auth.setSession({
-          access_token: tokens.access_token,
-          refresh_token: tokens.refresh_token,
-        });
-        if (error) throw error;
-        toast.success("Welcome back!");
-      }
+      setActiveProfile(profile!);
+      const tokens = isRolePortal
+        ? await roleSignIn({ data: { identifier: identifier.trim(), password, profile: profile! } })
+        : await signIn({ data: { identifier: identifier.trim(), password } });
+      const { error } = await supabase.auth.setSession({
+        access_token: tokens.access_token,
+        refresh_token: tokens.refresh_token,
+      });
+      if (error) throw error;
+      toast.success(
+        profile === "chairman" ? "Chairman access granted." : profile === "admin" ? "Admin access granted." : "Welcome back!",
+      );
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -129,43 +97,6 @@ function AuthPage() {
     }
   }
 
-  async function handleVerifyCode(e: React.FormEvent) {
-    e.preventDefault();
-    if (!otpEmail) return;
-    if (!/^\d{6}$/.test(code.trim())) return toast.error("Enter the 6-digit code sent to your mobile.");
-    setBusy(true);
-    try {
-      const tokens = await completeLogin({
-        data: { identifier: identifier.trim(), password, profile: profile!, code: code.trim() },
-      });
-      setActiveProfile(profile!);
-      const { error } = await supabase.auth.setSession({
-        access_token: tokens.access_token,
-        refresh_token: tokens.refresh_token,
-      });
-      if (error) throw error;
-      toast.success(profile === "chairman" ? "Chairman access granted." : "Admin access granted.");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not verify the code");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function handleResend() {
-    if (!otpEmail || cooldown > 0) return;
-    setBusy(true);
-    try {
-      const res = await resendOtp({ data: { email: otpEmail, profile: profile! } });
-      setCooldown(45);
-      if (res.smsSent) toast.success("A new code has been texted to you.");
-      else toast.warning(`Code regenerated, but SMS failed (${res.smsReason}).`);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not resend the code");
-    } finally {
-      setBusy(false);
-    }
-  }
 
   async function handleGoogle() {
     setBusy(true);
@@ -258,7 +189,7 @@ function AuthPage() {
           <div className="mx-auto w-full max-w-md rounded-3xl border border-border bg-card/85 p-8 shadow-elev backdrop-blur">
             <button
               onClick={() => {
-                resetToPassword();
+                setPassword("");
                 setProfile(null);
               }}
               className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
@@ -276,60 +207,13 @@ function AuthPage() {
               </div>
               <h1 className="mt-4 font-display text-2xl font-bold">{meta?.title}</h1>
               <p className="mt-1 text-sm text-muted-foreground">
-                {otpEmail
-                  ? `Step 2 of 2 — enter the 6-digit code we texted you`
-                  : needsOtp
-                    ? "Step 1 of 2 — password, then a 6-digit code by SMS"
-                    : t("auth.title")}
+                {isRolePortal ? "Sign in with your credentials — no one-time code needed." : t("auth.title")}
               </p>
             </div>
 
-            {otpEmail ? (
-              <form onSubmit={handleVerifyCode} className="space-y-4">
-                <div>
-                  <label className="text-xs font-medium">6-digit code sent to your mobile</label>
-                  <div className="relative mt-1">
-                    <KeyRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <input
-                      value={code}
-                      onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                      inputMode="numeric"
-                      autoComplete="one-time-code"
-                      autoFocus
-                      placeholder="123456"
-                      className="w-full rounded-md border border-input bg-background px-3 py-2 pl-9 text-center text-lg font-semibold tracking-[0.4em] focus:outline-none focus:ring-2 focus:ring-ring"
-                    />
-                  </div>
-                </div>
-                <button
-                  type="submit"
-                  disabled={busy}
-                  className="w-full rounded-md bg-saffron py-2.5 text-sm font-semibold text-saffron-foreground shadow-elev hover:brightness-95 disabled:opacity-50"
-                >
-                  Verify code &amp; sign in
-                </button>
-                <div className="flex items-center justify-between text-xs">
-                  <button
-                    type="button"
-                    onClick={handleResend}
-                    disabled={busy || cooldown > 0}
-                    className="inline-flex items-center gap-1.5 font-medium text-primary hover:underline disabled:opacity-50"
-                  >
-                    <RefreshCw className="h-3.5 w-3.5" />
-                    {cooldown > 0 ? `Resend in ${cooldown}s` : "Resend code"}
-                  </button>
-                  <button type="button" onClick={resetToPassword} className="text-muted-foreground hover:text-foreground">
-                    Start again
-                  </button>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Access is granted only after this code matches. The code is valid for 10 minutes, and every attempt is
-                  recorded in the activity log.
-                </p>
-              </form>
-            ) : (
-              <>
+            <>
                 <>
+
                     <button
                       onClick={handleGoogle}
                       disabled={busy}
@@ -392,20 +276,20 @@ function AuthPage() {
                   <button
                     type="submit"
                     disabled={busy}
-                    className={`w-full rounded-md py-2.5 text-sm font-semibold shadow-elev disabled:opacity-50 ${
-                      needsOtp
+                    className={`w-full rounded-md py-2.5 text-sm font-semibold shadow-elev transition active:scale-[0.98] disabled:opacity-50 ${
+                      isRolePortal
                         ? "bg-saffron text-saffron-foreground hover:brightness-95"
                         : "bg-primary text-primary-foreground hover:bg-primary/90"
                     }`}
                   >
-                    {needsOtp ? "Continue — send one-time code" : t("auth.signin")}
+                    {t("auth.signin")}
                   </button>
                 </form>
 
-                {needsOtp && (
+                {isRolePortal && (
                   <p className="mt-3 rounded-md border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
-                    {profile === "chairman" ? "Chairman" : "Admin"} rights open only through this door, and only after the
-                    6-digit code texted to the registered mobile number is matched.
+                    {profile === "chairman" ? "Chairman" : "Admin"} rights open only through this door. One-time codes are
+                    used during registration only — login is credentials-only.
                   </p>
                 )}
 
@@ -419,8 +303,7 @@ function AuthPage() {
                     </Link>
                   )}
                 </div>
-              </>
-            )}
+            </>
           </div>
         )}
       </div>
