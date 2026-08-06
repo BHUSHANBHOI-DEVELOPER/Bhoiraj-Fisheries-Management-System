@@ -6,7 +6,7 @@ import { lovable } from "@/integrations/lovable/index";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth-context";
 import { SiteHeader } from "@/components/site-header";
-import { signInWithIdentifier, startRoleLogin, completeRoleLogin, resendRoleOtp } from "@/lib/auth.functions";
+import { signInWithIdentifier, signInAsRole } from "@/lib/auth.functions";
 import { setActiveProfile } from "@/lib/auth-context";
 import { toast } from "sonner";
 import {
@@ -58,70 +58,38 @@ function AuthPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  // OTP stage (Chairman / Admin only)
-  const [otpEmail, setOtpEmail] = useState<string | null>(null);
-  const [maskedEmail, setMaskedEmail] = useState("");
-  const [code, setCode] = useState("");
-  const [cooldown, setCooldown] = useState(0);
-
-  const startLogin = useServerFn(startRoleLogin);
-  const completeLogin = useServerFn(completeRoleLogin);
-  const resendOtp = useServerFn(resendRoleOtp);
+  const roleSignIn = useServerFn(signInAsRole);
   const signIn = useServerFn(signInWithIdentifier);
 
-  const needsOtp = profile === "chairman" || profile === "admin";
+  const isRolePortal = profile === "chairman" || profile === "admin";
 
   useEffect(() => {
     if (initialProfile) setProfile(initialProfile);
   }, [initialProfile]);
 
   useEffect(() => {
-    if (cooldown <= 0) return;
-    const id = setTimeout(() => setCooldown((c) => c - 1), 1000);
-    return () => clearTimeout(id);
-  }, [cooldown]);
-
-  useEffect(() => {
     if (loading || !user) return;
-    if (needsOtp) {
-      navigate({ to: isAdmin ? "/admin" : "/dashboard" });
-      return;
-    }
-    navigate({ to: redirect || "/dashboard" });
-  }, [user, loading, isAdmin, needsOtp, navigate, redirect]);
-
-  function resetToPassword() {
-    setOtpEmail(null);
-    setCode("");
-    setPassword("");
-  }
+    navigate({ to: isAdmin ? "/dashboard" : redirect || "/dashboard" });
+  }, [user, loading, isAdmin, navigate, redirect]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (identifier.trim().length < 3) return toast.error("Enter your mobile number, Aadhaar number or email.");
+    if (identifier.trim().length < 3) return toast.error("Enter your User ID, mobile number, Aadhaar number or email.");
     if (password.length < 1) return toast.error("Enter your password.");
     setBusy(true);
     try {
-      if (needsOtp) {
-        const res = await startLogin({ data: { identifier: identifier.trim(), password, profile: profile! } });
-        setOtpEmail(res.email);
-        setMaskedEmail(res.maskedEmail);
-        setCooldown(45);
-        if (res.smsSent) {
-          toast.success(`Password verified. A 6-digit code was sent by SMS to ${res.maskedPhone}.`);
-        } else {
-          toast.warning(`Password verified, but the code could not be texted (${res.smsReason}). Ask the Admin for the code.`);
-        }
-      } else {
-        setActiveProfile("member");
-        const tokens = await signIn({ data: { identifier: identifier.trim(), password } });
-        const { error } = await supabase.auth.setSession({
-          access_token: tokens.access_token,
-          refresh_token: tokens.refresh_token,
-        });
-        if (error) throw error;
-        toast.success("Welcome back!");
-      }
+      setActiveProfile(profile!);
+      const tokens = isRolePortal
+        ? await roleSignIn({ data: { identifier: identifier.trim(), password, profile: profile! } })
+        : await signIn({ data: { identifier: identifier.trim(), password } });
+      const { error } = await supabase.auth.setSession({
+        access_token: tokens.access_token,
+        refresh_token: tokens.refresh_token,
+      });
+      if (error) throw error;
+      toast.success(
+        profile === "chairman" ? "Chairman access granted." : profile === "admin" ? "Admin access granted." : "Welcome back!",
+      );
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -129,43 +97,6 @@ function AuthPage() {
     }
   }
 
-  async function handleVerifyCode(e: React.FormEvent) {
-    e.preventDefault();
-    if (!otpEmail) return;
-    if (!/^\d{6}$/.test(code.trim())) return toast.error("Enter the 6-digit code sent to your mobile.");
-    setBusy(true);
-    try {
-      const tokens = await completeLogin({
-        data: { identifier: identifier.trim(), password, profile: profile!, code: code.trim() },
-      });
-      setActiveProfile(profile!);
-      const { error } = await supabase.auth.setSession({
-        access_token: tokens.access_token,
-        refresh_token: tokens.refresh_token,
-      });
-      if (error) throw error;
-      toast.success(profile === "chairman" ? "Chairman access granted." : "Admin access granted.");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not verify the code");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function handleResend() {
-    if (!otpEmail || cooldown > 0) return;
-    setBusy(true);
-    try {
-      const res = await resendOtp({ data: { email: otpEmail, profile: profile! } });
-      setCooldown(45);
-      if (res.smsSent) toast.success("A new code has been texted to you.");
-      else toast.warning(`Code regenerated, but SMS failed (${res.smsReason}).`);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not resend the code");
-    } finally {
-      setBusy(false);
-    }
-  }
 
   async function handleGoogle() {
     setBusy(true);
