@@ -10,7 +10,7 @@ import { signInWithIdentifier, signInAsRole } from "@/lib/auth.functions";
 import { setActiveProfile } from "@/lib/auth-context";
 import { toast } from "sonner";
 import {
-  Fish, Lock, Mail, ShieldCheck, Users, ArrowLeft, Eye, EyeOff, KeyRound, Wrench, RefreshCw,
+  Fish, Lock, Mail, ShieldCheck, Users, ArrowLeft, Eye, EyeOff, Wrench,
 } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
