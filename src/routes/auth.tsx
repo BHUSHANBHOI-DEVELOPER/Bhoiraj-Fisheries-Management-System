@@ -303,8 +303,7 @@ function AuthPage() {
                     </Link>
                   )}
                 </div>
-              </>
-            )}
+            </>
           </div>
         )}
       </div>
